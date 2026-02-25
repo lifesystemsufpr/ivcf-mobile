@@ -1,16 +1,157 @@
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
-import { DashboardNavigator } from "../features/dashboard"
-import { QuestionnaireNavigator } from "../features/questionnaire"
-import { CreateParticipantNavigator } from "../features/createParticipant"
+import React from "react";
+import { View, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import { DashboardNavigator } from "../features/dashboard";
+import { QuestionnaireNavigator } from "../features/questionnaire";
+import { CreateParticipantNavigator } from "../features/createParticipant";
 
-const Tab = createBottomTabNavigator()
+const Tab = createBottomTabNavigator();
 
+// ─── Custom Tab Bar ──────────────────────────────────────────────────
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const onTabPress = (route: any, index: number) => {
+    const isFocused = state.index === index;
+    const event = navigation.emit({
+      type: "tabPress",
+      target: route.key,
+      canPreventDefault: true,
+    });
+    if (!isFocused && !event.defaultPrevented) {
+      navigation.navigate(route.name);
+    }
+  };
+
+  const homeRoute = state.routes[0];
+  const addRoute = state.routes[1];
+  const participantsRoute = state.routes[2];
+
+  return (
+    <View style={tabStyles.wrapper}>
+      <View style={tabStyles.bar}>
+        {/* Left icon - Home */}
+        <TouchableOpacity
+          onPress={() => onTabPress(homeRoute, 0)}
+          activeOpacity={0.7}
+          style={tabStyles.tabButton}
+        >
+          <Ionicons
+            name="home"
+            size={24}
+            color={state.index === 0 ? "#FFFFFF" : "rgba(255,255,255,0.55)"}
+          />
+        </TouchableOpacity>
+
+        {/* Spacer for center button */}
+        <View style={tabStyles.centerSpacer} />
+
+        {/* Right icon - New User */}
+        <TouchableOpacity
+          onPress={() => onTabPress(participantsRoute, 2)}
+          activeOpacity={0.7}
+          style={tabStyles.tabButton}
+        >
+          <Ionicons
+            name="person-add"
+            size={24}
+            color={state.index === 2 ? "#FFFFFF" : "rgba(255,255,255,0.55)"}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Center "+" button - absolutely positioned */}
+      <TouchableOpacity
+        onPress={() => onTabPress(addRoute, 1)}
+        activeOpacity={0.8}
+        style={tabStyles.centerButtonWrapper}
+      >
+        <View style={tabStyles.centerButton}>
+          <Ionicons name="add" size={36} color="#FFFFFF" />
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ─── Main Navigator ──────────────────────────────────────────────────
 export function MainNavigator() {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
       <Tab.Screen name="Home" component={DashboardNavigator} />
-      <Tab.Screen name="Profile" component={QuestionnaireNavigator} />
-      <Tab.Screen name="Settings" component={CreateParticipantNavigator} />
+      <Tab.Screen name="Add" component={QuestionnaireNavigator} />
+      <Tab.Screen name="Participants" component={CreateParticipantNavigator} />
     </Tab.Navigator>
-  )
+  );
 }
+
+// ─── Styles ──────────────────────────────────────────────────────────
+const tabStyles = StyleSheet.create({
+  wrapper: {
+    position: "absolute",
+    bottom: 16,
+    left: 20,
+    right: 20,
+    alignItems: "center",
+  },
+  bar: {
+    flexDirection: "row",
+    backgroundColor: "#1F4273",
+    borderRadius: 40,
+    height: 64,
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 32,
+    width: "100%",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 10,
+      },
+    }),
+  },
+  tabButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 64,
+    width: 48,
+  },
+  centerSpacer: {
+    width: 72,
+  },
+  centerButtonWrapper: {
+    position: "absolute",
+    alignSelf: "center",
+    left: "50%",
+    marginLeft: -32,
+    bottom: 0,
+  },
+  centerButton: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+
+    backgroundColor: "#8BC34A",
+    alignItems: "center",
+    justifyContent: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+});

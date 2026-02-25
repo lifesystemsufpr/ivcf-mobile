@@ -13,7 +13,7 @@ import {
     ScrollView,
 } from "react-native";
 
-export const LoginScreen = () => {
+export const LoginScreen = ({ navigation }: { navigation: any }) => {
     const [cpf, setCpf] = useState("");
     const [senha, setSenha] = useState("");
 
@@ -32,6 +32,8 @@ export const LoginScreen = () => {
 
     const handleLogin = () => {
         console.log("Login with:", cpf, senha);
+
+        navigation.navigate("Main");
     };
 
     return (

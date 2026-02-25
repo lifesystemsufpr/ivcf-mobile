@@ -1,1 +1,1 @@
-export {CreateParticipantNavigator} from "./navigation/CreateParticipantNavigator";
+export { CreateParticipantNavigator } from "./navigation/CreateParticipantNavigator";

@@ -1,1 +1,1 @@
-export {QuestionnaireNavigator} from "./navigation/QuestionnaireNavigator";
+export { QuestionnaireNavigator } from "./navigation/QuestionnaireNavigator";
