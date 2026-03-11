@@ -11,7 +11,7 @@ import {
     Pressable,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useAuthStore } from "../../auth/store/useAuthStore";
 
 const { width } = Dimensions.get("window");
 
@@ -135,14 +135,12 @@ const BarChart = ({
 // ─── Dashboard Screen ────────────────────────────────────────────────
 export const DashboardScreen = () => {
     const [menuVisible, setMenuVisible] = useState(false);
-    const navigation = useNavigation<any>();
+    const user = useAuthStore((state) => state.user);
+    const logout = useAuthStore((state) => state.logout);
 
     const handleLogout = () => {
         setMenuVisible(false);
-        navigation.reset({
-            index: 0,
-            routes: [{ name: "Auth" }],
-        });
+        logout();
     };
 
     return (
@@ -157,7 +155,7 @@ export const DashboardScreen = () => {
                     </View>
                     <View style={styles.headerTextContainer}>
                         <Text style={styles.headerRole}>Responsável</Text>
-                        <Text style={styles.headerName}>Nome do usuário</Text>
+                        <Text style={styles.headerName}>{user?.name ?? "Usuário"}</Text>
                     </View>
                 </View>
                 <TouchableOpacity

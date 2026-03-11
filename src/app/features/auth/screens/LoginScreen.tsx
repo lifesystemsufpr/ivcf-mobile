@@ -11,29 +11,43 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    ActivityIndicator,
+    Alert,
 } from "react-native";
+import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../store/useAuthStore";
+import { mapJwtToUser } from "../mappers/authMapper";
 
-export const LoginScreen = ({ navigation }: { navigation: any }) => {
-    const [cpf, setCpf] = useState("");
+export const LoginScreen = () => {
+    const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
 
-    const formatCpf = (text: string) => {
-        const digits = text.replace(/\D/g, "").slice(0, 11);
-        let formatted = digits;
-        if (digits.length > 3) formatted = digits.slice(0, 3) + "." + digits.slice(3);
-        if (digits.length > 6) formatted = formatted.slice(0, 7) + "." + digits.slice(6);
-        if (digits.length > 9) formatted = formatted.slice(0, 11) + "-" + digits.slice(9);
-        return formatted;
-    };
-
-    const handleCpfChange = (text: string) => {
-        setCpf(formatCpf(text));
-    };
+    const { login, isLoading } = useAuth();
+    const setAuth = useAuthStore((state) => state.setAuth);
 
     const handleLogin = () => {
-        console.log("Login with:", cpf, senha);
+        if (!email || !senha) {
+            Alert.alert("Atenção", "Preencha todos os campos.");
+            return;
+        }
 
-        navigation.navigate("Main");
+        console.log("handleLogin chamado", { email, senha });
+
+        login(
+            { email, password: senha },
+            {
+                onSuccess: (response) => {
+                    const token = response.data.access_token;
+                    const user = mapJwtToUser(token);
+                    console.log("Login sucesso:", { token, user });
+                    setAuth(token, user);
+                },
+                onError: (error) => {
+                    console.log("Login erro:", error);
+                    Alert.alert("Erro", "E-mail ou senha inválidos. Tente novamente.");
+                },
+            }
+        );
     };
 
     return (
@@ -67,16 +81,17 @@ export const LoginScreen = ({ navigation }: { navigation: any }) => {
                         <View>
                             <Text style={styles.loginTitle}>Login</Text>
 
-                            {/* CPF */}
+                            {/* Email */}
                             <View style={styles.fieldGroup}>
-                                <Text style={styles.label}>CPF</Text>
+                                <Text style={styles.label}>E-mail</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="000.000.000-00"
+                                    placeholder="seu@email.com"
                                     placeholderTextColor="#A0A0A0"
-                                    value={cpf}
-                                    onChangeText={handleCpfChange}
-                                    keyboardType="numeric"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
                                 />
                             </View>
 
@@ -103,11 +118,16 @@ export const LoginScreen = ({ navigation }: { navigation: any }) => {
 
                         {/* Botão Entrar */}
                         <TouchableOpacity
-                            style={styles.button}
+                            style={[styles.button, isLoading && styles.buttonDisabled]}
                             activeOpacity={0.8}
                             onPress={handleLogin}
+                            disabled={isLoading}
                         >
-                            <Text style={styles.buttonText}>Entrar</Text>
+                            {isLoading ? (
+                                <ActivityIndicator color="#FFFFFF" />
+                            ) : (
+                                <Text style={styles.buttonText}>Entrar</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -206,6 +226,9 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
+    },
+    buttonDisabled: {
+        opacity: 0.7,
     },
     buttonText: {
         color: "#FFFFFF",

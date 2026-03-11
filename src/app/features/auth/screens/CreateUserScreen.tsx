@@ -20,7 +20,6 @@ type CreateUserNavigationProp = NativeStackNavigationProp<AuthStackParamList, "C
 
 export const CreateUserScreen = () => {
 
-    const [cpf, setCpf] = useState("");
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
     const [celular, setCelular] = useState("");
@@ -28,14 +27,6 @@ export const CreateUserScreen = () => {
     const [confirmSenha, setConfirmSenha] = useState("");
     const [termsAccepted, setTermsAccepted] = useState(false);
 
-    const formatCpf = (text: string) => {
-        const digits = text.replace(/\D/g, "").slice(0, 11);
-        let formatted = digits;
-        if (digits.length > 3) formatted = digits.slice(0, 3) + "." + digits.slice(3);
-        if (digits.length > 6) formatted = formatted.slice(0, 7) + "." + digits.slice(6);
-        if (digits.length > 9) formatted = formatted.slice(0, 11) + "-" + digits.slice(9);
-        return formatted;
-    };
 
     const formatCelular = (text: string) => {
         const digits = text.replace(/\D/g, "").slice(0, 11);
@@ -43,11 +34,8 @@ export const CreateUserScreen = () => {
         if (digits.length > 0) formatted = "(" + digits;
         if (digits.length > 2) formatted = "(" + digits.slice(0, 2) + ") " + digits.slice(2);
         if (digits.length > 7) formatted = "(" + digits.slice(0, 2) + ") " + digits.slice(2, 7) + "-" + digits.slice(7);
-        return formatted;
-    };
 
-    const handleCpfChange = (text: string) => {
-        setCpf(formatCpf(text));
+        return formatted;
     };
 
     const handleCelularChange = (text: string) => {
@@ -55,7 +43,7 @@ export const CreateUserScreen = () => {
     };
 
     const handleCadastrar = () => {
-        console.log("Cadastrar:", { cpf, nome, email, celular, termsAccepted });
+        console.log("Cadastrar:", { nome, email, celular, termsAccepted });
     };
 
     return (
@@ -85,18 +73,6 @@ export const CreateUserScreen = () => {
 
                     {/* Campos */}
                     <View style={styles.fieldsContainer}>
-                        {/* CPF */}
-                        <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>CPF</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={cpf}
-                                onChangeText={handleCpfChange}
-                                keyboardType="numeric"
-                                placeholder="000.000.000-00"
-                                placeholderTextColor="#B0BEC5"
-                            />
-                        </View>
 
                         {/* Nome */}
                         <View style={styles.fieldGroup}>
