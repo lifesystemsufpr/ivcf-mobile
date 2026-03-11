@@ -1,23 +1,14 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { CreateParticipantScreen } from "../screens/CreateParticipantScreen";
+
+const Stack = createNativeStackNavigator();
 
 export const CreateParticipantNavigator = () => {
     return (
-        <View style={styles.container}>
-            <Text style={styles.text}>Criar Participante</Text>
-        </View>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="CreateParticipant" component={CreateParticipantScreen} />
+        </Stack.Navigator>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#F5F5F5",
-    },
-    text: {
-        fontSize: 16,
-        color: "#666",
-    },
-});

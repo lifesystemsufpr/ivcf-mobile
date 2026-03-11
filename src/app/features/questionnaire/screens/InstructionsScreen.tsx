@@ -45,43 +45,47 @@ export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
                 contentContainerStyle={styles.contentContainer}
                 showsVerticalScrollIndicator={false}
             >
-                <Text style={styles.title}>
-                    Antes de iniciar a{"\n"}avaliação
-                </Text>
+                <View style={styles.card}>
+                    <Text style={styles.title}>
+                        Antes de iniciar a{"\n"}avaliação
+                    </Text>
 
-                <Text style={styles.description}>
-                    O IVCF-20 é um instrumento de triagem para identificar
-                    vulnerabilidades clínico-funcionais do idoso. Leia as
-                    perguntas com clareza sem induzir respostas
-                </Text>
+                    <Text style={styles.description}>
+                        O IVCF-20 é um instrumento de triagem para identificar
+                        vulnerabilidades clínico-funcionais do idoso. Leia as
+                        perguntas com clareza sem induzir respostas
+                    </Text>
 
-                {/* Instructions List */}
-                <View style={styles.instructionsList}>
-                    {instructions.map((item, index) => (
-                        <View key={index} style={styles.instructionItem}>
-                            <View style={styles.iconContainer}>
-                                <Ionicons
-                                    name={item.icon}
-                                    size={22}
-                                    color="#1F4273"
-                                />
+                    {/* Instructions List */}
+                    <View style={styles.instructionsList}>
+                        {instructions.map((item, index) => (
+                            <View key={index} style={styles.instructionItem}>
+                                <View style={styles.iconContainer}>
+                                    <Ionicons
+                                        name={item.icon}
+                                        size={22}
+                                        color="#1F4273"
+                                    />
+                                </View>
+                                <Text style={styles.instructionText}>
+                                    {item.text}
+                                </Text>
                             </View>
-                            <Text style={styles.instructionText}>
-                                {item.text}
-                            </Text>
-                        </View>
-                    ))}
-                </View>
+                        ))}
+                    </View>
 
-                {/* Iniciar Button */}
-                <TouchableOpacity
-                    style={styles.button}
-                    activeOpacity={0.8}
-                    onPress={() => navigation.navigate("Questionnaire")}
-                >
-                    <Text style={styles.buttonText}>Iniciar</Text>
-                </TouchableOpacity>
+                    {/* Iniciar Button */}
+                    <TouchableOpacity
+                        style={styles.button}
+                        activeOpacity={0.8}
+                        onPress={() => navigation.navigate("Questionnaire")}
+                    >
+                        <Text style={styles.buttonText}>Iniciar</Text>
+                    </TouchableOpacity>
+                </View>
             </ScrollView>
+
+         
         </View>
     );
 };
@@ -89,7 +93,7 @@ export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#1F4273",
     },
 
     // Header
@@ -97,30 +101,51 @@ const styles = StyleSheet.create({
         backgroundColor: "#1F4273",
         alignItems: "center",
         justifyContent: "center",
-        paddingTop: 48,
+        paddingTop: 70,
         paddingBottom: 24,
         paddingHorizontal: 20,
     },
     headerTitle: {
         color: "#FFFFFF",
-        fontSize: 22,
+        fontSize: 30,
         fontWeight: "bold",
+        marginTop: 30,
     },
+
+
+
     headerSubtitle: {
         color: "#FFFFFF",
-        fontSize: 16,
-        fontWeight: "600",
+        fontSize: 25,
+        fontWeight: "bold",
         marginTop: 2,
-        textDecorationLine: "underline",
+      
     },
 
     // Content
     content: {
-        flex: 1,
+        height: "100%",
+        width: "100%",
+        marginTop: 90,
     },
+
     contentContainer: {
-        padding: 24,
-        paddingBottom: 40,
+        height: "100%",
+        width: "100%",
+    },
+    card: {
+        backgroundColor: "#FFFFFF",
+        borderTopLeftRadius: 40,
+        borderTopRightRadius: 40,
+        paddingHorizontal: 24,
+        paddingTop: 24,
+        marginTop: 0,
+        height: "100%",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 4,
     },
     title: {
         fontSize: 26,
@@ -131,7 +156,7 @@ const styles = StyleSheet.create({
     },
     description: {
         fontSize: 14,
-        color: "#666666",
+        color: "#8A96A8",
         lineHeight: 22,
         marginBottom: 28,
     },
@@ -180,4 +205,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
     },
+   
 });

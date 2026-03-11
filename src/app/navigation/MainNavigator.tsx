@@ -4,8 +4,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { DashboardNavigator } from "../features/dashboard";
-import { QuestionnaireNavigator } from "../features/questionnaire";
 import { SearchParticipantNavigator } from "../features/searchParticipant";
+import { CreateParticipantNavigator } from "../features/createParticipant";
 
 const Tab = createBottomTabNavigator();
 
@@ -26,6 +26,26 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const homeRoute = state.routes[0];
   const addRoute = state.routes[1];
   const participantsRoute = state.routes[2];
+
+  const shouldHideTabBar = () => {
+    const currentTab = state.routes[state.index] as any;
+
+    if (currentTab.name === "Add" && currentTab.state) {
+      const nestedState = currentTab.state as any;
+      const nestedRoute =
+        nestedState.routes?.[nestedState.index ?? 0] ?? undefined;
+
+      if (nestedRoute?.name === "Instructions") {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  if (shouldHideTabBar()) {
+    return null;
+  }
 
   return (
     <View style={tabStyles.wrapper}>
@@ -83,7 +103,7 @@ export function MainNavigator() {
     >
       <Tab.Screen name="Home" component={DashboardNavigator} />
       <Tab.Screen name="Add" component={SearchParticipantNavigator} />
-      <Tab.Screen name="Participants" component={QuestionnaireNavigator} />
+      <Tab.Screen name="Participants" component={CreateParticipantNavigator} />
     </Tab.Navigator>
   );
 }
