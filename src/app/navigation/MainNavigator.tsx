@@ -5,7 +5,7 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { DashboardNavigator } from "../features/dashboard";
 import { QuestionnaireNavigator } from "../features/questionnaire";
-import { CreateParticipantNavigator } from "../features/createParticipant";
+import { SearchParticipantNavigator } from "../features/searchParticipant";
 
 const Tab = createBottomTabNavigator();
 
@@ -82,8 +82,8 @@ export function MainNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home" component={DashboardNavigator} />
-      <Tab.Screen name="Add" component={QuestionnaireNavigator} />
-      <Tab.Screen name="Participants" component={CreateParticipantNavigator} />
+      <Tab.Screen name="Add" component={SearchParticipantNavigator} />
+      <Tab.Screen name="Participants" component={QuestionnaireNavigator} />
     </Tab.Navigator>
   );
 }
