@@ -8,6 +8,8 @@ import {
     FlatList,
     TouchableOpacity,
     ActivityIndicator,
+    Modal,
+    Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -16,11 +18,20 @@ import { useAuthStore } from "../../auth/store/useAuthStore";
 import { ParticipantDTO } from "../dto/ParticipantDTO";
 
 
-export const SearchParticipantScreen = () => {
+export const SearchParticipantScreen = ({ route }: any) => {
     const [searchName, setSearchName] = useState("");
+    const [menuVisible, setMenuVisible] = useState(false);
     const user = useAuthStore((state) => state.user);
+    const logout = useAuthStore((state) => state.logout);
     const navigation = useNavigation<any>();
     const { participants, isLoading } = useSearchParticipant();
+
+    const fromMenu = route?.params?.fromMenu === true;
+
+    const handleLogout = () => {
+        setMenuVisible(false);
+        logout();
+    };
 
     const filteredParticipants = useMemo(() => {
         if (!searchName.trim()) return participants;
@@ -34,7 +45,13 @@ export const SearchParticipantScreen = () => {
         <TouchableOpacity
             style={styles.card}
             activeOpacity={0.7}
-            onPress={() => navigation.navigate("Instructions", { participant: item })}
+            onPress={() => {
+                if (fromMenu) {
+                    navigation.navigate("UserDetail", { participant: item });
+                } else {
+                    navigation.navigate("Instructions", { participant: item });
+                }
+            }}
         >
             <View style={styles.cardLeft}>
                 <View style={styles.cardAvatar}>
@@ -64,10 +81,51 @@ export const SearchParticipantScreen = () => {
                         <Text style={styles.headerName}>{user?.name ?? "Usuário"}</Text>
                     </View>
                 </View>
-                <TouchableOpacity style={styles.menuButton}>
+                <TouchableOpacity
+                    style={styles.menuButton}
+                    onPress={() => setMenuVisible(true)}
+                >
                     <Ionicons name="menu" size={28} color="#FFFFFF" />
                 </TouchableOpacity>
             </View>
+
+            {/* Dropdown Menu */}
+            <Modal
+                visible={menuVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setMenuVisible(false)}
+            >
+                <Pressable
+                    style={styles.menuOverlay}
+                    onPress={() => setMenuVisible(false)}
+                >
+                    <View style={styles.menuDropdown}>
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={() => {
+                                setMenuVisible(false);
+                                navigation.navigate("Add");
+                            }}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="search" size={20} color="#1F4273" />
+                            <Text style={[styles.menuItemText, { color: "#1F4273" }]}>Pesquisar participante</Text>
+                        </TouchableOpacity>
+
+                        <View style={{ height: 1, backgroundColor: "#E0E0E0", width: "100%" }} />
+
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={handleLogout}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="log-out-outline" size={20} color="#F44336" />
+                            <Text style={styles.menuItemText}>Sair</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Pressable>
+            </Modal>
 
             {/* Content */}
             <View style={styles.content}>
@@ -157,6 +215,36 @@ const styles = StyleSheet.create({
     },
     menuButton: {
         padding: 4,
+    },
+    menuOverlay: {
+        flex: 1,
+    },
+    menuDropdown: {
+        position: "absolute",
+        top: 90,
+        right: 20,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 12,
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+        elevation: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        minWidth: 150,
+    },
+    menuItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        gap: 10,
+    },
+    menuItemText: {
+        fontSize: 15,
+        fontWeight: "500",
+        color: "#F44336",
     },
 
     // Content

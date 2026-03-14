@@ -6,6 +6,15 @@ export interface ParticipantDTO {
     birthday: string;
     phone: string | null;
     active: boolean;
+    // Optional details
+    weight?: number;
+    height?: number; // cm
+    street?: string;
+    number?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
 }
 
 export interface ParticipantPageDTO {

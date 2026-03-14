@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useAuthStore } from "../../auth/store/useAuthStore";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -137,6 +138,7 @@ export const DashboardScreen = () => {
     const [menuVisible, setMenuVisible] = useState(false);
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
+    const navigation = useNavigation<any>();
 
     const handleLogout = () => {
         setMenuVisible(false);
@@ -178,6 +180,23 @@ export const DashboardScreen = () => {
                     onPress={() => setMenuVisible(false)}
                 >
                     <View style={styles.menuDropdown}>
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={() => {
+                                setMenuVisible(false);
+                                navigation.navigate("Add", {
+                                    screen: "SearchParticipant",
+                                    params: { fromMenu: true }
+                                });
+                            }}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="search" size={20} color="#1F4273" />
+                            <Text style={[styles.menuItemText, { color: "#1F4273" }]}>Pesquisar participante</Text>
+                        </TouchableOpacity>
+
+                        <View style={{ height: 1, backgroundColor: "#E0E0E0", width: "100%" }} />
+
                         <TouchableOpacity
                             style={styles.menuItem}
                             onPress={handleLogout}

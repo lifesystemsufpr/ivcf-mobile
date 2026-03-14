@@ -92,9 +92,28 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                     : [];
 
                 const isSelected = currentArray.includes(optionId);
-                const nextArray = isSelected
-                    ? currentArray.filter((id) => id !== optionId)
-                    : [...currentArray, optionId];
+                
+                // For question 14, id "5" is "Nenhuma das condições"
+                // For question 20, id "4" is "Nenhuma condição"
+                const noneOfTheAboveId = questionId === 14 ? "5" : questionId === 20 ? "4" : null;
+
+                let nextArray: string[];
+
+                if (isSelected) {
+                    // Unselect the current option
+                    nextArray = currentArray.filter((id) => id !== optionId);
+                } else {
+                    if (optionId === noneOfTheAboveId) {
+                        // If selecting "Nenhuma", unselect everything else
+                        nextArray = [optionId];
+                    } else {
+                        // If selecting a regular option, remove "Nenhuma" if it was selected, and add the new one
+                        nextArray = [
+                            ...currentArray.filter((id) => id !== noneOfTheAboveId),
+                            optionId,
+                        ];
+                    }
+                }
 
                 return {
                     ...prev,
