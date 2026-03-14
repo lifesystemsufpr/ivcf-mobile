@@ -35,9 +35,18 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       const nestedRoute =
         nestedState.routes?.[nestedState.index ?? 0] ?? undefined;
 
-      if (nestedRoute?.name === "Instructions") {
+      if (
+        nestedRoute?.name === "Instructions" ||
+        nestedRoute?.name === "Questionnaire" ||
+        nestedRoute?.name === "Result" ||
+        nestedRoute?.name === "Success"
+      ) {
         return true;
       }
+    }
+
+    if (currentTab.name === "Participants") {
+      return true;
     }
 
     return false;

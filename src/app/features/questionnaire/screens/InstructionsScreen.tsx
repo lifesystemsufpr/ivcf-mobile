@@ -58,7 +58,7 @@ export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
 
                     {/* Instructions List */}
                     <View style={styles.instructionsList}>
-                        {instructions.map((item, index) => (
+                        {instructions.map((item, index) => ( 
                             <View key={index} style={styles.instructionItem}>
                                 <View style={styles.iconContainer}>
                                     <Ionicons
@@ -105,20 +105,22 @@ const styles = StyleSheet.create({
         paddingBottom: 24,
         paddingHorizontal: 20,
     },
+
+    
     headerTitle: {
         color: "#FFFFFF",
-        fontSize: 30,
+        fontSize: 40,
         fontWeight: "bold",
-        marginTop: 30,
+        marginTop: 60,
     },
 
 
 
     headerSubtitle: {
         color: "#FFFFFF",
-        fontSize: 25,
+        fontSize: 35,
         fontWeight: "bold",
-        marginTop: 2,
+        marginTop: 10,
       
     },
 
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
     content: {
         height: "100%",
         width: "100%",
-        marginTop: 90,
+        marginTop: 50,
     },
 
     contentContainer: {
@@ -135,8 +137,8 @@ const styles = StyleSheet.create({
     },
     card: {
         backgroundColor: "#FFFFFF",
-        borderTopLeftRadius: 40,
-        borderTopRightRadius: 40,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
         paddingHorizontal: 24,
         paddingTop: 24,
         marginTop: 0,

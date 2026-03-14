@@ -6,47 +6,47 @@ import {
     TouchableOpacity,
     StyleSheet,
     StatusBar,
-    Image,
-    Dimensions,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { CreateParticipantStackParamList } from "../navigation/types";
 
+type NavigationProp = NativeStackNavigationProp<CreateParticipantStackParamList, "CreateParticipant">;
 
 export const CreateParticipantScreen = () => {
+    const navigation = useNavigation<NavigationProp>();
 
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
-    const [celular, setCelular] = useState("");
-    const [senha, setSenha] = useState("");
-    const [confirmSenha, setConfirmSenha] = useState("");
-    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [dataNasc, setDataNasc] = useState("");
+    const [sexo, setSexo] = useState("");
+    const [altura, setAltura] = useState("");
+    const [peso, setPeso] = useState("");
 
 
-    const formatCelular = (text: string) => {
-        const digits = text.replace(/\D/g, "").slice(0, 11);
-        let formatted = digits;
-        if (digits.length > 0) formatted = "(" + digits;
-        if (digits.length > 2) formatted = "(" + digits.slice(0, 2) + ") " + digits.slice(2);
-        if (digits.length > 7) formatted = "(" + digits.slice(0, 2) + ") " + digits.slice(2, 7) + "-" + digits.slice(7);
 
-        return formatted;
-    };
-
-    const handleCelularChange = (text: string) => {
-        setCelular(formatCelular(text));
-    };
-
-    const handleCadastrar = () => {
-        console.log("Cadastrar:", { nome, email, celular, termsAccepted });
+    const handleContinuar = () => {
+        if (!nome || !email || !dataNasc || !sexo || !altura || !peso) {
+            Alert.alert("Atenção", "Por favor, preencha todos os campos.");
+            return;
+        }
+        navigation.navigate("CreateParticipantAddress", {
+            nome,
+            email,
+            dataNasc,
+            sexo,
+            altura,
+            peso,
+        });
     };
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+            <StatusBar barStyle="dark-content" backgroundColor="#1F4273" />
 
             <KeyboardAvoidingView
                 style={styles.keyboardView}
@@ -59,6 +59,7 @@ export const CreateParticipantScreen = () => {
                 >
 
                     {/* Título */}
+                    <Text style={styles.stepTitle}>Etapa 1 de 2</Text>
                     <Text style={styles.title}>Dados Pessoais</Text>
 
                     {/* Campos */}
@@ -90,73 +91,60 @@ export const CreateParticipantScreen = () => {
                             />
                         </View>
 
-                        {/* Celular */}
                         <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Celular</Text>
+                            <Text style={styles.label}>Data de Nascimento</Text>
                             <TextInput
                                 style={styles.input}
-                                value={celular}
-                                onChangeText={handleCelularChange}
-                                keyboardType="numeric"
-                                placeholder="(00) 00000-0000"
+                                value={dataNasc}
+                                onChangeText={setDataNasc}
+                                placeholder="dd/mm/aaaa"
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>
 
-                        {/* Senha */}
                         <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Senha</Text>
+                            <Text style={styles.label}>Sexo</Text>
                             <TextInput
                                 style={styles.input}
-                                value={senha}
-                                onChangeText={setSenha}
-                                secureTextEntry
-                                placeholder="Digite sua senha"
+                                value={sexo}
+                                onChangeText={setSexo}
+                                placeholder="Masculino/Feminino"
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>
 
-                        {/* Confirmação de Senha */}
                         <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Confirmação de Senha</Text>
+                            <Text style={styles.label}>Altura</Text>
                             <TextInput
                                 style={styles.input}
-                                value={confirmSenha}
-                                onChangeText={setConfirmSenha}
-                                secureTextEntry
-                                placeholder="Confirme sua senha"
+                                value={altura}
+                                onChangeText={setAltura}
+                                placeholder="1,70"
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>
+
+                        <View style={styles.fieldGroup}>
+                            <Text style={styles.label}>Peso</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={peso}
+                                onChangeText={setPeso}
+                                placeholder="70kg"
+                                placeholderTextColor="#B0BEC5"
+                            />
+                        </View>
+
                     </View>
-
-                    {/* Termos */}
-                    <TouchableOpacity
-                        style={styles.termsRow}
-                        activeOpacity={0.7}
-                        onPress={() => setTermsAccepted(!termsAccepted)}
-                    >
-                        <Text style={styles.termsText}>
-                            Li e concordo com os termos de uso
-                        </Text>
-                        <View style={[
-                            styles.checkbox,
-                            termsAccepted && styles.checkboxChecked,
-                        ]}>
-                            {termsAccepted && (
-                                <Text style={styles.checkmark}>✓</Text>
-                            )}
-                        </View>
-                    </TouchableOpacity>
 
                     {/* Botão Cadastrar */}
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
                             style={styles.button}
                             activeOpacity={0.8}
-                            onPress={handleCadastrar}
+                            onPress={handleContinuar}
                         >
-                            <Text style={styles.buttonText}>Cadastrar</Text>
+                            <Text style={styles.buttonText}>Continuar</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -178,14 +166,17 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
         paddingHorizontal: 28,
-        paddingBottom: 40,
-    },
-    logoContainer: {
-        alignItems: "center",
-        paddingTop: 50,
-        marginBottom: 10,
+        marginTop: 75,
+        paddingBottom: 30,
     },
 
+    stepTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#1F4273",
+        marginBottom: 20,
+        textAlign: "center",
+    },
     title: {
         fontSize: 26,
         fontWeight: "bold",
