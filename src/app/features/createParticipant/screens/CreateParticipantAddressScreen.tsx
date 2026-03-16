@@ -14,6 +14,8 @@ import {
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { CreateParticipantStackParamList } from "../navigation/types";
+import { useCreateParticipant } from "../hooks/useCreateParticipant";
+import type { CreateParticipantPayloadDTO } from "../dto/CreateParticipantDTO";
 
 type AddressScreenRouteProp = RouteProp<CreateParticipantStackParamList, "CreateParticipantAddress">;
 type NavigationProp = NativeStackNavigationProp<CreateParticipantStackParamList, "CreateParticipantAddress">;
@@ -22,7 +24,8 @@ export const CreateParticipantAddressScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<AddressScreenRouteProp>();
 
-    const { nome, email, dataNasc, sexo, altura, peso } = route.params || {};
+    const { nome, email, phone, dataNasc, sexo, altura, peso } = route.params || {};
+    const createParticipant = useCreateParticipant();
 
     const [cep, setCep] = useState("");
     const [rua, setRua] = useState("");
@@ -61,34 +64,109 @@ export const CreateParticipantAddressScreen = () => {
         }
     };
 
-    const handleEnviar = () => {
+    const parseHeight = (value: string) => {
+        const normalized = value.replace(",", ".").trim();
+        const parsed = Number(normalized);
+        return Number.isFinite(parsed) ? parsed : undefined;
+    };
+
+    const parseWeight = (value: string) => {
+        const normalized = value.replace(",", ".").replace(/kg/gi, "").trim();
+        const parsed = Number(normalized);
+        return Number.isFinite(parsed) ? parsed : undefined;
+    };
+
+    const parseBirthday = (value: string) => {
+        const trimmed = value.trim();
+        const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        const yyyymmdd = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+        const m1 = trimmed.match(ddmmyyyy);
+        if (m1) {
+            const [, dd, mm, yyyy] = m1;
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        const m2 = trimmed.match(yyyymmdd);
+        if (m2) {
+            return trimmed;
+        }
+
+        return undefined;
+    };
+
+    const toGenderEnum = (value: string) => {
+        const v = value.trim().toLowerCase();
+        if (v.startsWith("f")) return "FEMALE";
+        if (v.startsWith("m")) return "MALE";
+        return undefined;
+    };
+
+    const handleEnviar = async () => {
+        if (createParticipant.isPending) {
+            return;
+        }
+
         if (!cep || !rua || !numero || !bairro || !cidade || !estado) {
             Alert.alert("Atenção", "Por favor, preencha os campos obrigatórios do endereço.");
             return;
         }
 
-        const fullData = {
-            nome,
-            email,
-            dataNasc,
-            sexo,
-            altura,
-            peso,
-            endereco: {
-                cep,
-                rua,
-                numero,
-                complemento,
-                bairro,
-                cidade,
-                estado
-            }
+        const birthday = parseBirthday(dataNasc);
+        const height = parseHeight(altura);
+        const weight = parseWeight(peso);
+        const gender = toGenderEnum(sexo);
+        const socialLevel = "C"; // Placeholder, ajustar conforme necessário
+        const scholarship = "HIGHER_EDUCATION_COMPLETE"; // Placeholder, ajustar conforme necessário
+
+        if (!birthday) {
+            Alert.alert("Atenção", "Data de nascimento inválida. Use dd/mm/aaaa.");
+            return;
+        }
+        if (!height) {
+            Alert.alert("Atenção", "Altura inválida. Ex.: 1,75");
+            return;
+        }
+        if (!weight) {
+            Alert.alert("Atenção", "Peso inválido. Ex.: 70");
+            return;
+        }
+        if (!gender) {
+            Alert.alert("Atenção", "Sexo inválido. Use Masculino ou Feminino.");
+            return;
+        }
+
+        const payload: CreateParticipantPayloadDTO = {
+            birthday,
+            weight,
+            height,
+            zipCode: cep,
+            street: rua,
+            number: numero,
+            complement: complemento || "",
+            neighborhood: bairro,
+            city: cidade,
+            state: estado,
+            scholarship: scholarship,
+            socio_economic_level: socialLevel,
+            user: {
+                fullName: nome,
+                email,
+                phone,
+                gender,
+                active: true,
+            },
         };
 
-        console.log("Enviar:", fullData);
-        Alert.alert("Sucesso", "Participante cadastrado com sucesso!");
-        // Por enquanto, apenas volta para a home ou onde estiver após o sucesso.
-        navigation.navigate("CreateParticipant");
+        try {
+            await createParticipant.mutateAsync(payload);
+            Alert.alert("Sucesso", "Participante cadastrado com sucesso!");
+            navigation.navigate("CreateParticipant");
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.error("Erro ao cadastrar participante:", errorMessage);
+            Alert.alert("Erro", "Não foi possível cadastrar o participante.");
+        }
     };
 
     return (

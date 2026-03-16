@@ -3,6 +3,7 @@ export type CreateParticipantStackParamList = {
     CreateParticipantAddress: {
         nome: string;
         email: string;
+        phone: string;
         dataNasc: string;
         sexo: string;
         altura: string;

@@ -10,6 +10,8 @@ import {
     Platform,
     ScrollView,
     Alert,
+    Modal,
+    Pressable,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -22,21 +24,24 @@ export const CreateParticipantScreen = () => {
 
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [dataNasc, setDataNasc] = useState("");
     const [sexo, setSexo] = useState("");
+    const [sexoModalOpen, setSexoModalOpen] = useState(false);
     const [altura, setAltura] = useState("");
     const [peso, setPeso] = useState("");
 
 
 
     const handleContinuar = () => {
-        if (!nome || !email || !dataNasc || !sexo || !altura || !peso) {
+        if (!nome || !email || !phone || !dataNasc || !sexo || !altura || !peso) {
             Alert.alert("Atenção", "Por favor, preencha todos os campos.");
             return;
         }
         navigation.navigate("CreateParticipantAddress", {
             nome,
             email,
+            phone,
             dataNasc,
             sexo,
             altura,
@@ -92,6 +97,18 @@ export const CreateParticipantScreen = () => {
                         </View>
 
                         <View style={styles.fieldGroup}>
+                            <Text style={styles.label}>Telefone</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={phone}
+                                onChangeText={setPhone}
+                                keyboardType="phone-pad"
+                                placeholder="41999998888"
+                                placeholderTextColor="#B0BEC5"
+                            />
+                        </View>
+
+                        <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Data de Nascimento</Text>
                             <TextInput
                                 style={styles.input}
@@ -104,13 +121,21 @@ export const CreateParticipantScreen = () => {
 
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Sexo</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={sexo}
-                                onChangeText={setSexo}
-                                placeholder="Masculino/Feminino"
-                                placeholderTextColor="#B0BEC5"
-                            />
+                            <TouchableOpacity
+                                style={styles.selectInput}
+                                activeOpacity={0.8}
+                                onPress={() => setSexoModalOpen(true)}
+                            >
+                                <Text
+                                    style={[
+                                        styles.selectText,
+                                        !sexo && styles.selectPlaceholder,
+                                    ]}
+                                >
+                                    {sexo || "Selecione"}
+                                </Text>
+                                <Text style={styles.selectChevron}>▾</Text>
+                            </TouchableOpacity>
                         </View>
 
                         <View style={styles.fieldGroup}>
@@ -149,6 +174,52 @@ export const CreateParticipantScreen = () => {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <Modal
+                visible={sexoModalOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setSexoModalOpen(false)}
+            >
+                <Pressable
+                    style={styles.modalBackdrop}
+                    onPress={() => setSexoModalOpen(false)}
+                >
+                    <Pressable style={styles.modalCard} onPress={() => null}>
+                        <Text style={styles.modalTitle}>Sexo</Text>
+
+                        <TouchableOpacity
+                            style={styles.modalOption}
+                            activeOpacity={0.8}
+                            onPress={() => {
+                                setSexo("Feminino");
+                                setSexoModalOpen(false);
+                            }}
+                        >
+                            <Text style={styles.modalOptionText}>Feminino</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.modalOption}
+                            activeOpacity={0.8}
+                            onPress={() => {
+                                setSexo("Masculino");
+                                setSexoModalOpen(false);
+                            }}
+                        >
+                            <Text style={styles.modalOptionText}>Masculino</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.modalCancel}
+                            activeOpacity={0.8}
+                            onPress={() => setSexoModalOpen(false)}
+                        >
+                            <Text style={styles.modalCancelText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </Pressable>
+                </Pressable>
+            </Modal>
         </View>
     );
 };
@@ -204,6 +275,75 @@ const styles = StyleSheet.create({
         color: "#333333",
         borderBottomWidth: 2,
         borderBottomColor: "#C5CED8",
+    },
+    selectInput: {
+        backgroundColor: "#EDF1F7",
+        borderRadius: 8,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        borderBottomWidth: 2,
+        borderBottomColor: "#C5CED8",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+    selectText: {
+        fontSize: 15,
+        color: "#333333",
+        flex: 1,
+    },
+    selectPlaceholder: {
+        color: "#B0BEC5",
+    },
+    selectChevron: {
+        marginLeft: 12,
+        fontSize: 16,
+        color: "#6B7B8D",
+    },
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.35)",
+        paddingHorizontal: 24,
+        justifyContent: "center",
+    },
+    modalCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+    },
+    modalTitle: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#1F4273",
+        marginBottom: 12,
+        textAlign: "center",
+    },
+    modalOption: {
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: "#EDF1F7",
+        marginBottom: 10,
+        alignItems: "center",
+    },
+    modalOptionText: {
+        fontSize: 15,
+        fontWeight: "600",
+        color: "#1F4273",
+    },
+    modalCancel: {
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#C5CED8",
+        alignItems: "center",
+        marginTop: 4,
+    },
+    modalCancelText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#6B7B8D",
     },
     termsRow: {
         flexDirection: "row",
