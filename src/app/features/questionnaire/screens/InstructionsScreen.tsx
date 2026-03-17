@@ -7,6 +7,7 @@ import {
     ScrollView,
     TouchableOpacity,
 } from "react-native";
+import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 const instructions = [
@@ -29,6 +30,8 @@ const instructions = [
 ];
 
 export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
+    const route = useRoute();
+    const participant = (route.params as any)?.participant;
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
@@ -78,7 +81,7 @@ export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
                     <TouchableOpacity
                         style={styles.button}
                         activeOpacity={0.8}
-                        onPress={() => navigation.navigate("Questionnaire")}
+                        onPress={() => navigation.navigate("Questionnaire", { participant })}
                     >
                         <Text style={styles.buttonText}>Iniciar</Text>
                     </TouchableOpacity>

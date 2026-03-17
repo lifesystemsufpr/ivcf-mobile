@@ -2,6 +2,12 @@ import React from "react";
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity, DimensionValue } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { CommonActions } from "@react-navigation/native";
+import { Alert, ActivityIndicator } from "react-native";
+import axios from "axios";
+import { useQuestionnaire } from "../hooks/useQuestionnaire";
+import { QuestionnaireResponseDTO } from "../dto/QuestionnaireResponseDTO";
+import { questionnaireResponseService } from "../services/QuestionnaireResponseService";
+import { useAuthStore } from "../../auth/store/useAuthStore";
 
 type Props = {
     navigation: any;
@@ -40,12 +46,99 @@ const classifyScore = (score: number) => {
     };
 };
 
+
 export const ResultScreen: React.FC<Props> = ({ navigation, route }) => {
     const score = route.params?.score ?? 0;
     const classification = classifyScore(score);
 
     const indicatorPosition = `${(score / MAX_SCORE) * 100}%`;
+    const { questionnaire } = useQuestionnaire();
 
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+    const handleSubmit = async () => {
+        if (isSubmitting) return;
+
+        const routeParams: any = route.params ?? {};
+
+        const routeAnswers: Record<string, string | string[] | undefined> =
+            routeParams.answers ?? {};
+
+        const questionnaireId: string =
+            routeParams.questionnaireId ?? questionnaire?.id ?? "";
+
+        const participantId: string = routeParams.participantId ?? "";
+        const authUser = useAuthStore.getState().user;
+        const healthProfessionalId: string = routeParams.healthProfessionalId ?? authUser?.id ?? "";
+
+        if (!participantId) {
+            Alert.alert("Erro", "Participante não selecionado. Volte e selecione um participante antes de enviar.");
+            return;
+        }
+
+        if (!healthProfessionalId) {
+            Alert.alert("Erro", "Usuário autenticado não encontrado. Faça login novamente.");
+            return;
+        }
+
+        const answersPayload: QuestionnaireResponseDTO["answers"] = [];
+
+        for (const [questionId, answerValue] of Object.entries(routeAnswers)) {
+            if (answerValue == null) continue;
+
+            if (Array.isArray(answerValue)) {
+                for (const optionId of answerValue) {
+                    answersPayload.push({ questionId, selectedOptionId: optionId });
+                }
+            } else {
+                answersPayload.push({ questionId, selectedOptionId: answerValue });
+            }
+        }
+
+        const payload: QuestionnaireResponseDTO = {
+            participantId,
+            healthProfessionalId,
+            questionnaireId,
+            answers: answersPayload,
+        };
+
+        try {
+            setIsSubmitting(true);
+            const resp = await questionnaireResponseService.submitResponse(payload);
+            console.log("Questionnaire response status:", resp?.status);
+            console.log("Questionnaire response data:", resp?.data);
+            navigation.dispatch(CommonActions.navigate({ name: "Success" }));
+        } catch (err: any) {
+            console.error("Failed to submit questionnaire response", err);
+
+            let message = "Não foi possível enviar as respostas. Tente novamente.";
+
+            if (axios.isAxiosError(err) && err.response) {
+                const respData = err.response.data;
+
+                if (respData) {
+                    if (typeof respData === "string") {
+                        message = respData;
+                    } else if (respData.message) {
+                        message = respData.message;
+                    } else {
+                        try {
+                            message = JSON.stringify(respData);
+
+                        } catch (e) {
+                            message = `Erro ${err.response.status}`;
+                        }
+                    }
+                } 
+            } 
+
+            Alert.alert("Erro", message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1F385C" />
@@ -108,10 +201,15 @@ export const ResultScreen: React.FC<Props> = ({ navigation, route }) => {
 
                     <TouchableOpacity
                         style={[styles.navButton, styles.primaryButton]}
-                        onPress={() => navigation.dispatch(CommonActions.navigate({ name: "Success" }))}
+                        onPress={handleSubmit}
                         activeOpacity={0.8}
+                        disabled={isSubmitting}
                     >
-                        <Text style={styles.primaryText}>Enviar</Text>
+                        {isSubmitting ? (
+                            <ActivityIndicator color="#FFF" />
+                        ) : (
+                            <Text style={styles.primaryText}>Enviar</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
 

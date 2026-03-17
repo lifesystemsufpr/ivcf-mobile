@@ -6,63 +6,76 @@ import {
     StatusBar,
     TouchableOpacity,
     ScrollView,
+    ActivityIndicator,
 } from "react-native";
-import { IVCF20_QUESTIONS, Question } from "../questions";
+import { useQuestionnaire } from "../hooks/useQuestionnaire";
+import { useRoute } from "@react-navigation/native";
+import { QuestionDTO } from "../dto/QuestionnaireDTO";
 
 type Props = {
     navigation: any;
 };
 
-const TOTAL_QUESTIONS = IVCF20_QUESTIONS.length;
+type Answers = Record<string, string | string[] | undefined>;
 
-type Answers = Record<number, string | string[] | undefined>;
+// Questions where multiple options can be selected simultaneously
+const MULTI_SELECT_QUESTION_IDS_FALLBACK = new Set<string>();
 
-const isMultiSelectQuestion = (questionId: number) => {
-    return questionId === 14 || questionId === 20;
-};
+function isMultiSelect(question: QuestionDTO): boolean {
+    if (question.type === "MULTI_ENUM") return true;
+    // Fallback: detect by statement pattern (questions 14 and 20 in IVCF-20)
+    const stmt = question.statement.toLowerCase();
+    return (
+        stmt.includes("alguma das quatro") ||
+        stmt.includes("alguma das três")
+    );
+}
 
-const getQuestionScore = (
-    question: Question,
+function getNoneOfTheAboveId(question: QuestionDTO): string | null {
+    const noneOption = question.options.find((opt) =>
+        opt.label.toLowerCase().startsWith("nenhum")
+    );
+    return noneOption?.id ?? null;
+}
+
+function getQuestionScore(
+    question: QuestionDTO,
     answerValue: string | string[] | undefined,
-): number => {
-    if (!answerValue) {
-        return 0;
-    }
+): number {
+    if (!answerValue) return 0;
 
-    const selectedIds = Array.isArray(answerValue)
-        ? answerValue
-        : [answerValue];
+    const selectedIds = Array.isArray(answerValue) ? answerValue : [answerValue];
 
     const sum = selectedIds.reduce((acc, optionId) => {
         const option = question.options.find((opt) => opt.id === optionId);
         return option ? acc + option.score : acc;
     }, 0);
 
-    if (question.id === 14) {
-        return Math.min(sum, 2);
-    }
-
-    if (question.id === 20) {
-        return Math.min(sum, 4);
+    // Cap multi-select scores based on max score of the options present
+    if (isMultiSelect(question)) {
+        const maxScore = Math.max(...question.options.map((o) => o.score === 0 ? 0 : o.score));
+        return Math.min(sum, maxScore);
     }
 
     return sum;
-};
+}
 
-const calculateTotalScore = (answers: Answers): number => {
+function calculateTotalScore(
+    questions: QuestionDTO[],
+    answers: Answers,
+): number {
     let score = 0;
-    
-    // Dependent domains
-    let aivdScore = 0; // Atividades Instrumentais (Q3, Q4, Q5) - max 4
-    let humorScore = 0; // Humor (Q10, Q11) - max 2
+    let aivdScore = 0; // AIVD domain questions (3, 4, 5) — max contribution is 4
+    let humorScore = 0; // Humor domain questions (10, 11) — max contribution is 2
 
-    IVCF20_QUESTIONS.forEach((question) => {
+    questions.forEach((question, index) => {
+        const questionNumber = index + 1;
         const value = answers[question.id];
         const qScore = getQuestionScore(question, value);
 
-        if (question.id >= 3 && question.id <= 5) {
+        if (questionNumber >= 3 && questionNumber <= 5) {
             aivdScore = Math.max(aivdScore, qScore);
-        } else if (question.id === 10 || question.id === 11) {
+        } else if (questionNumber === 10 || questionNumber === 11) {
             humorScore = Math.max(humorScore, qScore);
         } else {
             score += qScore;
@@ -73,16 +86,46 @@ const calculateTotalScore = (answers: Answers): number => {
     score += humorScore;
 
     return Math.min(score, 40);
-};
+}
 
 export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
+    const route = useRoute();
+    const participant = (route.params as any)?.participant;
+    const { questionnaire, questions, isLoading, isError, refetch } = useQuestionnaire();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<Answers>({});
 
-    const currentQuestion: Question = IVCF20_QUESTIONS[currentIndex];
+    if (isLoading) {
+        return (
+            <View style={[styles.container, styles.centered]}>
+                <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
+                <ActivityIndicator size="large" color="#FFFFFF" />
+                <Text style={styles.loadingText}>Carregando questionário...</Text>
+            </View>
+        );
+    }
 
-    const handleSelectOption = (questionId: number, optionId: string) => {
-        if (isMultiSelectQuestion(questionId)) {
+    if (isError || questions.length === 0) {
+        return (
+            <View style={[styles.container, styles.centered]}>
+                <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
+                <Text style={styles.errorText}>
+                    Não foi possível carregar o questionário.
+                </Text>
+                <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+                    <Text style={styles.retryButtonText}>Tentar novamente</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+    const TOTAL_QUESTIONS = questions.length;
+    const currentQuestion: QuestionDTO = questions[currentIndex];
+    const multiSelect = isMultiSelect(currentQuestion);
+    const noneOfTheAboveId = getNoneOfTheAboveId(currentQuestion);
+
+    const handleSelectOption = (questionId: string, optionId: string) => {
+        if (multiSelect) {
             setAnswers((prev) => {
                 const currentValue = prev[questionId];
                 const currentArray = Array.isArray(currentValue)
@@ -92,22 +135,15 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                     : [];
 
                 const isSelected = currentArray.includes(optionId);
-                
-                // For question 14, id "5" is "Nenhuma das condições"
-                // For question 20, id "4" is "Nenhuma condição"
-                const noneOfTheAboveId = questionId === 14 ? "5" : questionId === 20 ? "4" : null;
 
                 let nextArray: string[];
 
                 if (isSelected) {
-                    // Unselect the current option
                     nextArray = currentArray.filter((id) => id !== optionId);
                 } else {
                     if (optionId === noneOfTheAboveId) {
-                        // If selecting "Nenhuma", unselect everything else
                         nextArray = [optionId];
                     } else {
-                        // If selecting a regular option, remove "Nenhuma" if it was selected, and add the new one
                         nextArray = [
                             ...currentArray.filter((id) => id !== noneOfTheAboveId),
                             optionId,
@@ -129,9 +165,7 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
     };
 
     const handlePrevious = () => {
-        if (currentIndex === 0) {
-            return;
-        }
+        if (currentIndex === 0) return;
         setCurrentIndex((index) => index - 1);
     };
 
@@ -139,8 +173,13 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
         const isLast = currentIndex === TOTAL_QUESTIONS - 1;
 
         if (isLast) {
-            const totalScore = calculateTotalScore(answers);
-            navigation.navigate("Result", { score: totalScore });
+            const totalScore = calculateTotalScore(questions, answers);
+            navigation.navigate("Result", {
+                score: totalScore,
+                questionnaireId: questionnaire?.id,
+                answers,
+                participantId: participant?.id,
+            });
             return;
         }
 
@@ -175,41 +214,45 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                     contentContainerStyle={styles.content}
                     showsVerticalScrollIndicator={false}
                 >
-                    <Text style={styles.questionText}>{currentQuestion.title}</Text>
+                    <Text style={styles.questionText}>
+                        {currentQuestion.statement}
+                    </Text>
 
                     <View style={styles.optionsCard}>
-                        {currentQuestion.options.map((option) => {
-                            const answerValue = answers[currentQuestion.id];
-                            const selected = Array.isArray(answerValue)
-                                ? answerValue.includes(option.id)
-                                : answerValue === option.id;
+                        {[...currentQuestion.options]
+                            .sort((a, b) => a.order - b.order)
+                            .map((option) => {
+                                const answerValue = answers[currentQuestion.id];
+                                const selected = Array.isArray(answerValue)
+                                    ? answerValue.includes(option.id)
+                                    : answerValue === option.id;
 
-                            return (
-                                <TouchableOpacity
-                                    key={option.id}
-                                    style={[
-                                        styles.optionButton,
-                                        selected && styles.optionButtonSelected,
-                                    ]}
-                                    activeOpacity={0.8}
-                                    onPress={() =>
-                                        handleSelectOption(
-                                            currentQuestion.id,
-                                            option.id,
-                                        )
-                                    }
-                                >
-                                    <Text
+                                return (
+                                    <TouchableOpacity
+                                        key={option.id}
                                         style={[
-                                            styles.optionText,
-                                            selected && styles.optionTextSelected,
+                                            styles.optionButton,
+                                            selected && styles.optionButtonSelected,
                                         ]}
+                                        activeOpacity={0.8}
+                                        onPress={() =>
+                                            handleSelectOption(
+                                                currentQuestion.id,
+                                                option.id,
+                                            )
+                                        }
                                     >
-                                        {option.label}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
+                                        <Text
+                                            style={[
+                                                styles.optionText,
+                                                selected && styles.optionTextSelected,
+                                            ]}
+                                        >
+                                            {option.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                     </View>
                 </ScrollView>
 
@@ -246,9 +289,7 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                         </Text>
                     </TouchableOpacity>
                 </View>
-                
             </View>
-
         </View>
     );
 };
@@ -257,6 +298,34 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#1F4273",
+    },
+    centered: {
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 16,
+    },
+    loadingText: {
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: "500",
+    },
+    errorText: {
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: "500",
+        textAlign: "center",
+        paddingHorizontal: 32,
+    },
+    retryButton: {
+        backgroundColor: "#8BC34A",
+        paddingVertical: 12,
+        paddingHorizontal: 32,
+        borderRadius: 24,
+    },
+    retryButtonText: {
+        color: "#FFFFFF",
+        fontSize: 14,
+        fontWeight: "600",
     },
     header: {
         backgroundColor: "#1F4273",
@@ -387,6 +456,4 @@ const styles = StyleSheet.create({
     navButtonTextDisabled: {
         color: "#C5CED8",
     },
-  
 });
-
