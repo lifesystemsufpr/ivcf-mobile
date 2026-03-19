@@ -18,22 +18,46 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// Temporary Mock Data for Domain Details
-const MOCK_DOMAINS = [
-    {
-        id: "1",
-        name: "Cognição",
-        points: 10,
-        questions: [
-            { q: "1. Pergunta sobre memória recente?", a: "Sim", score: 5 },
-            { q: "2. Pergunta sobre memória recente?", a: "Não", score: 0 },
-        ],
-    },
-    { id: "2", name: "Humor", points: 5, questions: [] },
-    { id: "3", name: "Mobilidade", points: 15, questions: [] },
-    { id: "4", name: "Comunicação", points: 5, questions: [] },
-    { id: "5", name: "Comorbidades", points: 5, questions: [] },
-];
+// Helper to group domains based on question content
+const getDomainForQuestion = (statement: string) => {
+    const s = statement.toLowerCase();
+    if (s.includes("idade")) return "Idade";
+    if (s.includes("saúde é")) return "Autopercepção da Saúde";
+    if (s.includes("compras") || s.includes("dinheiro") || s.includes("trabalhos domésticos") || s.includes("banho sozinho")) return "AVD (Atividades de Vida Diária)";
+    if (s.includes("esquecido") || s.includes("esquecimento")) return "Cognição";
+    if (s.includes("desânimo") || s.includes("perdeu o interesse")) return "Humor";
+    if (s.includes("braços") || s.includes("pequenos objetos") || s.includes("quatro condições") || s.includes("caminhar") || s.includes("quedas") || s.includes("urina ou fezes")) return "Mobilidade";
+    if (s.includes("visão") || s.includes("audição")) return "Comunicação";
+    if (s.includes("três condições")) return "Comorbidades Múltiplas";
+    return "Outros";
+};
+
+const processHistoryToDomains = (answers: any[]) => {
+    if (!answers) return [];
+
+    const domainsMap: Record<string, { id: string; name: string; points: number; questions: any[] }> = {};
+
+    answers.forEach((ans) => {
+        const domainName = getDomainForQuestion(ans.question.statement);
+        if (!domainsMap[domainName]) {
+            domainsMap[domainName] = {
+                id: domainName,
+                name: domainName,
+                points: 0,
+                questions: [],
+            };
+        }
+
+        domainsMap[domainName].points += ans.selectedOption.score;
+        domainsMap[domainName].questions.push({
+            q: ans.question.statement,
+            a: ans.selectedOption.label,
+            score: ans.selectedOption.score,
+        });
+    });
+
+    return Object.values(domainsMap);
+};
 
 const AccordionItem = ({ domain }: { domain: any }) => {
     const [expanded, setExpanded] = useState(false);
@@ -83,6 +107,35 @@ export const HistoryDetailScreen = ({ navigation, route }: any) => {
     const user = useAuthStore((state) => state.user);
     const { participant, history } = route.params || {};
 
+    const domains = React.useMemo(() => {
+        if (!history || !history.answers) return [];
+        return processHistoryToDomains(history.answers);
+    }, [history]);
+
+    const formatBirthday = (dateString?: string) => {
+        if (!dateString) return "--/--/----";
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString; 
+            return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' }); 
+        } catch {
+            return dateString;
+        }
+    };
+    
+    const formatTime = (dateString?: string) => {
+        if (!dateString) return "--:--";
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "--:--"; 
+            return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute:'2-digit' }); 
+        } catch {
+            return "--:--";
+        }
+    };
+
+    const color = history?.classification === "Robusto" ? "#8BC34A" : history?.classification === "Pré-Frágil" ? "#FFA726" : "#FF4B4B";
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
@@ -112,32 +165,31 @@ export const HistoryDetailScreen = ({ navigation, route }: any) => {
                 <View style={styles.infoCard}>
                     <Text style={styles.patientName}>{participant?.fullName ?? "Nome completo"}</Text>
                     <View style={styles.dateRow}>
-                        <Text style={styles.dateText}>Data: {history?.date ?? "20/01/2026"}</Text>
-                        <Text style={styles.dateText}>Hora: 10:15</Text>
+                        <Text style={styles.dateText}>Data: {formatBirthday(history?.date)}</Text>
+                        <Text style={styles.dateText}>Hora: {formatTime(history?.date)}</Text>
                     </View>
                 </View>
 
                 {/* Total Score Card */}
-                <View style={styles.scoreCard}>
+                <View style={[styles.scoreCard, { borderColor: color }]}>
                     <View style={styles.scoreHeader}>
-                        <Text style={[styles.scoreTitle, { color: history?.color ?? "#8BC34A" }]}>
-                            Pontuação Total: {history?.score ?? 40}
+                        <Text style={[styles.scoreTitle, { color }]}>
+                            Pontuação Total: {history?.totalScore ?? 0}
                         </Text>
-                        <View style={[styles.badge, { backgroundColor: history?.color ?? "#8BC34A" }]}>
+                        <View style={[styles.badge, { backgroundColor: color }]}>
                             <Ionicons name="checkmark-circle" size={12} color="#FFF" style={{ marginRight: 4 }} />
-                            <Text style={styles.badgeText}>{history?.category ?? "Robusto"}</Text>
+                            <Text style={styles.badgeText}>{history?.classification ?? "N/A"}</Text>
                         </View>
                     </View>
                     <Text style={styles.scoreDesc}>
-                        Indica baixa vulnerabilidade clínico-funcional.
-                        Acompanhamento anual recomendado.
+                        Acompanhamento recomendado de acordo com a classificação clínico-funcional.
                     </Text>
                 </View>
 
                 <Text style={styles.sectionTitle}>Detalhamento por Domínio</Text>
 
                 {/* Accordions */}
-                {MOCK_DOMAINS.map((domain) => (
+                {domains.map((domain) => (
                     <AccordionItem key={domain.id} domain={domain} />
                 ))}
             </ScrollView>

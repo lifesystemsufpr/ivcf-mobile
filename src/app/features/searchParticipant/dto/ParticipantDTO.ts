@@ -26,3 +26,32 @@ export interface ParticipantPageDTO {
         lastPage: number;
     };
 }
+
+export interface QuestionDTO {
+    statement: string;
+}
+
+export interface SelectedOptionDTO {
+    label: string;
+    score: number;
+}
+
+export interface AnswerDTO {
+    id: string;
+    questionId: string;
+    selectedOptionId: string;
+    question: QuestionDTO;
+    selectedOption: SelectedOptionDTO;
+}
+
+export interface QuestionnaireResponseDTO {
+    id: string;
+    totalScore: number;
+    classification: string;
+    date: string;
+    participantId: string;
+    questionnaireId: string;
+    createdAt: string;
+    updatedAt: string;
+    answers: AnswerDTO[];
+}

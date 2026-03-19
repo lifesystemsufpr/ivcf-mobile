@@ -31,7 +31,43 @@ export const CreateParticipantScreen = () => {
     const [altura, setAltura] = useState("");
     const [peso, setPeso] = useState("");
 
+    const handleEmailChange = (text: string) => {
+        setEmail(text.trim().toLowerCase());
+    };
 
+    const handlePhoneChange = (text: string) => {
+        let raw = text.replace(/\D/g, "");
+        if (raw.length > 11) raw = raw.slice(0, 11);
+        let formatted = raw;
+        if (raw.length > 2) {
+            formatted = `(${raw.slice(0, 2)}) ${raw.slice(2)}`;
+        }
+        if (raw.length > 6 && raw.length < 11) {
+            formatted = `(${raw.slice(0, 2)}) ${raw.slice(2, 6)}-${raw.slice(6)}`;
+        } else if (raw.length === 11) {
+            formatted = `(${raw.slice(0, 2)}) ${raw.slice(2, 7)}-${raw.slice(7)}`;
+        }
+        setPhone(formatted);
+    };
+
+    const handleDateChange = (text: string) => {
+        let raw = text.replace(/\D/g, "");
+        if (raw.length > 8) raw = raw.slice(0, 8);
+        let formatted = raw;
+        if (raw.length > 2) {
+            formatted = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+        }
+        if (raw.length > 4) {
+            formatted = `${raw.slice(0, 2)}/${raw.slice(2, 4)}/${raw.slice(4)}`;
+        }
+        setDataNasc(formatted);
+    };
+
+    const handleAlturaChange = (text: string) => {
+        let raw = text.replace(/\D/g, "");
+        if (raw.length > 3) raw = raw.slice(0, 3);
+        setAltura(raw);
+    };
 
     const handleContinuar = () => {
         if (!nome || !email || !phone || !dataNasc || !sexo || !altura || !peso) {
@@ -88,7 +124,7 @@ export const CreateParticipantScreen = () => {
                             <TextInput
                                 style={styles.input}
                                 value={email}
-                                onChangeText={setEmail}
+                                onChangeText={handleEmailChange}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 placeholder="email@exemplo.com"
@@ -101,9 +137,10 @@ export const CreateParticipantScreen = () => {
                             <TextInput
                                 style={styles.input}
                                 value={phone}
-                                onChangeText={setPhone}
-                                keyboardType="phone-pad"
-                                placeholder="41999998888"
+                                onChangeText={handlePhoneChange}
+                                keyboardType="numeric"
+                                maxLength={15}
+                                placeholder="(41) 99999-8888"
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>
@@ -113,7 +150,9 @@ export const CreateParticipantScreen = () => {
                             <TextInput
                                 style={styles.input}
                                 value={dataNasc}
-                                onChangeText={setDataNasc}
+                                onChangeText={handleDateChange}
+                                keyboardType="numeric"
+                                maxLength={10}
                                 placeholder="dd/mm/aaaa"
                                 placeholderTextColor="#B0BEC5"
                             />
@@ -143,8 +182,10 @@ export const CreateParticipantScreen = () => {
                             <TextInput
                                 style={styles.input}
                                 value={altura}
-                                onChangeText={setAltura}
-                                placeholder="1,70"
+                                onChangeText={handleAlturaChange}
+                                keyboardType="numeric"
+                                maxLength={3}
+                                placeholder="170 (em cm)"
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>

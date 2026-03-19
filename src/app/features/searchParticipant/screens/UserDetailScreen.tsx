@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -9,18 +9,24 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { ParticipantDTO } from "../dto/ParticipantDTO";
-
-const MOCK_HISTORY = [
-    { id: "1", score: 40, date: "20/01/2026", category: "Robusto", color: "#8BC34A" },
-    { id: "2", score: 20, date: "20/01/2026", category: "Pré-Frágil", color: "#FFA726" },
-    { id: "3", score: 10, date: "20/01/2026", category: "Frágil", color: "#FF4B4B" },
-];
+import { fetchParticipantHistory } from "../services/SearchParticipantService";
 
 export const UserDetailScreen = ({ navigation, route }: any) => {
     const { participant } = route.params;
     const user = useAuthStore((state) => state.user);
     const [activeTab, setActiveTab] = useState<"dados" | "historico">("dados");
+    const [historyList, setHistoryList] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    useEffect(() => {
+        if (activeTab === "historico") {
+            setLoadingHistory(true);
+            fetchParticipantHistory(participant.id)
+                .then(data => setHistoryList(data))
+                .catch(err => console.error("Error fetching history", err))
+                .finally(() => setLoadingHistory(false));
+        }
+    }, [activeTab, participant.id]);
 
     // Helper para formatar data vinda do backend (ex: YYYY-MM-DDT00:00:00Z -> DD/MM/YYYY)
     const formatBirthday = (dateString?: string) => {
@@ -153,27 +159,36 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
                     </View>
                 ) : (
                     <View style={styles.historyContainer}>
-                        {MOCK_HISTORY.map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={styles.historyCard}
-                                activeOpacity={0.7}
-                                onPress={() => navigation.navigate("HistoryDetail", { participant: participant, history: item })}
-                            >
-                                <View style={[styles.historyBorder, { backgroundColor: item.color }]} />
-                                <View style={styles.historyContent}>
-                                    <View>
-                                        <Text style={styles.historyScore}>Pontuação: {item.score}</Text>
-                                        <Text style={styles.historyDate}>Realização: {item.date}</Text>
-                                    </View>
-                                    <View style={[styles.historyBadge, { borderColor: item.color }]}>
-                                        <Text style={[styles.historyBadgeText, { color: item.color }]}>
-                                            {item.category}
-                                        </Text>
-                                    </View>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
+                        {loadingHistory ? (
+                            <Text style={styles.placeholderText}>Carregando histórico...</Text>
+                        ) : historyList.length === 0 ? (
+                            <Text style={styles.placeholderText}>Nenhum questionário encontrado.</Text>
+                        ) : (
+                            historyList.map((item) => {
+                                const color = item.classification === "Robusto" ? "#8BC34A" : item.classification === "Pré-Frágil" ? "#FFA726" : "#FF4B4B";
+                                return (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        style={styles.historyCard}
+                                        activeOpacity={0.7}
+                                        onPress={() => navigation.navigate("HistoryDetail", { participant: participant, history: item })}
+                                    >
+                                        <View style={[styles.historyBorder, { backgroundColor: color }]} />
+                                        <View style={styles.historyContent}>
+                                            <View>
+                                                <Text style={styles.historyScore}>Pontuação: {item.totalScore}</Text>
+                                                <Text style={styles.historyDate}>Realização: {formatBirthday(item.date)}</Text>
+                                            </View>
+                                            <View style={[styles.historyBadge, { borderColor: color }]}>
+                                                <Text style={[styles.historyBadgeText, { color }]}>
+                                                    {item.classification}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })
+                        )}
                     </View>
                 )}
             </ScrollView>

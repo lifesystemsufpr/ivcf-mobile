@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -13,23 +13,12 @@ import {
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useNavigation, CommonActions } from "@react-navigation/native";
+import { fetchDashboardData } from "../services/DashboardService";
 
 const { width } = Dimensions.get("window");
 
+// The data arrays are replaced by local state
 // ─── Data ────────────────────────────────────────────────────────────
-const riskData = [
-    { label: "Robusto", value: 4, color: "#4CAF50" },
-    { label: "Pré-Frágil", value: 13, color: "#FFC107" },
-    { label: "Frágil", value: 8, color: "#F44336" },
-];
-
-const ageData = [
-    { label: "60-74 anos", value: 11, color: "#4CAF50" },
-    { label: "75-84 anos", value: 8, color: "#FFC107" },
-];
-
-const TOTAL_COORTE = 25;
-const SCORE_MEDIO = 16.3;
 
 // ─── Bar Chart Component ─────────────────────────────────────────────
 interface BarData {
@@ -136,9 +125,62 @@ const BarChart = ({
 // ─── Dashboard Screen ────────────────────────────────────────────────
 export const DashboardScreen = () => {
     const [menuVisible, setMenuVisible] = useState(false);
+    const [totalParticipants, setTotalParticipants] = useState(0);
+    const [averageScore, setAverageScore] = useState(0);
+    const [riskData, setRiskData] = useState<BarData[]>([]);
+    const [ageData, setAgeData] = useState<BarData[]>([]);
+    const [loading, setLoading] = useState(true);
+
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const navigation = useNavigation<any>();
+
+    useEffect(() => {
+        let mounted = true;
+        fetchDashboardData()
+            .then(data => {
+                if (!mounted) return;
+                const rawTotal = data.totalParticipants;
+                const total = typeof rawTotal === 'number' ? rawTotal : rawTotal?.totalParticipants ?? 0;
+                setTotalParticipants(total);
+                
+                // Formata o avg score
+                const rawAvg = data.averageScore;
+                const avgScoreValue = typeof rawAvg === 'number' ? rawAvg : rawAvg?.averageScore ?? 0;
+                setAverageScore(typeof avgScoreValue === "number" ? parseFloat(avgScoreValue.toFixed(1)) : 0);
+                
+                if (Array.isArray(data.ageDistribution)) {
+                    const colors = ["#4CAF50", "#FFC107", "#F44336", "#2196F3", "#9C27B0"];
+                    setAgeData(data.ageDistribution.map((item, idx) => ({
+                        label: item.range || "N/A",
+                        value: item.total || 0,
+                        color: colors[idx % colors.length]
+                    })));
+                }
+
+                if (Array.isArray(data.riskDistribution)) {
+                    setRiskData(data.riskDistribution.map(item => {
+                        let color = "#4CAF50";
+                        const label = item.classification || item.risk || "N/A";
+                        if (label.toLowerCase().includes("pré")) color = "#FFC107";
+                        else if (label.toLowerCase().includes("frágil")) color = "#F44336";
+                        return {
+                            label,
+                            value: item.total || item.count || 0,
+                            color
+                        };
+                    }));
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => mounted && setLoading(false));
+
+        return () => { mounted = false; };
+    }, []);
+
+    // Calcula dinamicamente o maxValue do gráfico
+    const riskMax = Math.max(...riskData.map(d => d.value), 4);
+    const ageMax = Math.max(...ageData.map(d => d.value), 4);
 
     const handleLogout = () => {
         setMenuVisible(false);
@@ -219,37 +261,30 @@ export const DashboardScreen = () => {
                 <View style={styles.statsRow}>
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>Total na coorte</Text>
-                        <Text style={styles.statValue}>{TOTAL_COORTE}</Text>
+                        <Text style={styles.statValue}>{loading ? "..." : totalParticipants}</Text>
                     </View>
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>Score médio</Text>
-                        <Text style={styles.statValue}>{SCORE_MEDIO}</Text>
+                        <Text style={styles.statValue}>{loading ? "..." : averageScore}</Text>
                     </View>
                 </View>
 
                 {/* Risk Distribution Chart */}
                 <BarChart
                     title="Distribuição de Risco"
-                    subtitle={`(Total na coorte: ${TOTAL_COORTE})`}
+                    subtitle={`(Total na coorte: ${totalParticipants})`}
                     data={riskData}
-                    maxValue={15}
-                    legendItems={[
-                        { label: "Robusto (Verde)", color: "#4CAF50" },
-                        { label: "Pré-Frágil (Amarelo)", color: "#FFC107" },
-                        { label: "Frágil (Vermelho)", color: "#F44336" },
-                    ]}
+                    maxValue={riskMax}
+                    legendItems={riskData.map(d => ({ label: d.label, color: d.color }))}
                 />
 
                 {/* Age Groups Chart */}
                 <BarChart
                     title="Faixas Etárias Predominantes"
-                    subtitle={`(Total: ${TOTAL_COORTE})`}
+                    subtitle={`(Total: ${totalParticipants})`}
                     data={ageData}
-                    maxValue={14}
-                    legendItems={[
-                        { label: "60-74 anos", color: "#4CAF50" },
-                        { label: "75-84 anos", color: "#FFC107" },
-                    ]}
+                    maxValue={ageMax}
+                    legendItems={ageData.map(d => ({ label: d.label, color: d.color }))}
                 />
 
                 <View style={{ height: 24 }} />
