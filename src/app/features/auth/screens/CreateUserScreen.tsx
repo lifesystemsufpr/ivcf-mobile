@@ -11,14 +11,17 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types/AuthStackParamList";
+import { useCreateHealthProfessional } from "../hooks/useCreateHealthProfessional";
 
 type CreateUserNavigationProp = NativeStackNavigationProp<AuthStackParamList, "CreateUser">;
 
 export const CreateUserScreen = () => {
+    const navigation = useNavigation<CreateUserNavigationProp>();
 
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
@@ -27,6 +30,7 @@ export const CreateUserScreen = () => {
     const [confirmSenha, setConfirmSenha] = useState("");
     const [termsAccepted, setTermsAccepted] = useState(false);
 
+    const createHealthProfessional = useCreateHealthProfessional();
 
     const formatCelular = (text: string) => {
         const digits = text.replace(/\D/g, "").slice(0, 11);
@@ -42,8 +46,39 @@ export const CreateUserScreen = () => {
         setCelular(formatCelular(text));
     };
 
-    const handleCadastrar = () => {
-        console.log("Cadastrar:", { nome, email, celular, termsAccepted });
+    const handleCadastrar = async () => {
+        if (!nome || !email || !celular || !senha || !confirmSenha || !termsAccepted) {
+            Alert.alert("Atenção", "Por favor, preencha todos os campos e aceite os termos.");
+            return;
+        }
+
+        if (senha !== confirmSenha) {
+            Alert.alert("Atenção", "As senhas não coincidem.");
+            return;
+        }
+
+        const rawPhone = celular.replace(/\D/g, "");
+        const genderEnum = "FEMALE"; // Mockado
+        const mockedSpeciality = "Cardiologista"; // Mockado
+
+        try {
+            await createHealthProfessional.mutateAsync({
+                speciality: mockedSpeciality,
+                user: {
+                    fullName: nome,
+                    email,
+                    phone: rawPhone,
+                    gender: genderEnum,
+                    password: senha,
+                    active: true,
+                }
+            });
+            Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
+            navigation.goBack();
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Erro", "Não foi possível realizar o cadastro.");
+        }
     };
 
     return (
@@ -112,6 +147,8 @@ export const CreateUserScreen = () => {
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>
+
+
 
                         {/* Senha */}
                         <View style={styles.fieldGroup}>
@@ -226,6 +263,75 @@ const styles = StyleSheet.create({
         color: "#333333",
         borderBottomWidth: 2,
         borderBottomColor: "#C5CED8",
+    },
+    selectInput: {
+        backgroundColor: "#EDF1F7",
+        borderRadius: 8,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        borderBottomWidth: 2,
+        borderBottomColor: "#C5CED8",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+    selectText: {
+        fontSize: 15,
+        color: "#333333",
+        flex: 1,
+    },
+    selectPlaceholder: {
+        color: "#B0BEC5",
+    },
+    selectChevron: {
+        marginLeft: 12,
+        fontSize: 16,
+        color: "#6B7B8D",
+    },
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.35)",
+        paddingHorizontal: 24,
+        justifyContent: "center",
+    },
+    modalCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+    },
+    modalTitle: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#1F4273",
+        marginBottom: 12,
+        textAlign: "center",
+    },
+    modalOption: {
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: "#EDF1F7",
+        marginBottom: 10,
+        alignItems: "center",
+    },
+    modalOptionText: {
+        fontSize: 15,
+        fontWeight: "600",
+        color: "#1F4273",
+    },
+    modalCancel: {
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#C5CED8",
+        alignItems: "center",
+        marginTop: 4,
+    },
+    modalCancelText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#6B7B8D",
     },
     termsRow: {
         flexDirection: "row",

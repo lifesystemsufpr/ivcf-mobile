@@ -74,6 +74,41 @@ export const CreateParticipantScreen = () => {
             Alert.alert("Atenção", "Por favor, preencha todos os campos.");
             return;
         }
+
+        // Validação da Data de Nascimento
+        const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        const match = dataNasc.match(ddmmyyyy);
+        
+        if (!match) {
+            Alert.alert("Atenção", "Data de nascimento inválida. Use dd/mm/aaaa.");
+            return;
+        }
+
+        const day = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10);
+        const year = parseInt(match[3], 10);
+
+        const currentYear = new Date().getFullYear();
+        if (year < 1900 || year > currentYear) {
+            Alert.alert("Atenção", "Ano de nascimento inválido ou muito distante.");
+            return;
+        }
+
+        const dateObj = new Date(year, month - 1, day);
+        if (
+            dateObj.getFullYear() !== year ||
+            dateObj.getMonth() !== month - 1 ||
+            dateObj.getDate() !== day
+        ) {
+            Alert.alert("Atenção", "Data de nascimento inválida (dia ou mês incorretos).");
+            return;
+        }
+
+        if (dateObj > new Date()) {
+            Alert.alert("Atenção", "A data de nascimento não pode ser no futuro.");
+            return;
+        }
+
         navigation.navigate("CreateParticipantAddress", {
             nome,
             email,
