@@ -12,10 +12,12 @@ import {
     Alert,
     Modal,
     Pressable,
+    ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { CreateParticipantStackParamList } from "../navigation/types";
+import { createParticipantApi } from "../api/createParticipantApi";
 
 type NavigationProp = NativeStackNavigationProp<CreateParticipantStackParamList, "CreateParticipant">;
 
@@ -30,6 +32,7 @@ export const CreateParticipantScreen = () => {
     const [sexoModalOpen, setSexoModalOpen] = useState(false);
     const [altura, setAltura] = useState("");
     const [peso, setPeso] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleEmailChange = (text: string) => {
         setEmail(text.trim().toLowerCase());
@@ -69,7 +72,7 @@ export const CreateParticipantScreen = () => {
         setAltura(raw);
     };
 
-    const handleContinuar = () => {
+    const handleContinuar = async () => {
         if (!nome || !email || !phone || !dataNasc || !sexo || !altura || !peso) {
             Alert.alert("Atenção", "Por favor, preencha todos os campos.");
             return;
@@ -109,15 +112,28 @@ export const CreateParticipantScreen = () => {
             return;
         }
 
-        navigation.navigate("CreateParticipantAddress", {
-            nome,
-            email,
-            phone,
-            dataNasc,
-            sexo,
-            altura,
-            peso,
-        });
+        setIsLoading(true);
+        try {
+            await createParticipantApi.checkEmail(email);
+            Alert.alert("Atenção", "Participante já cadastrado.");
+        } catch (error: any) {
+            if (error?.response?.status === 404) {
+                navigation.navigate("CreateParticipantAddress", {
+                    nome,
+                    email,
+                    phone,
+                    dataNasc,
+                    sexo,
+                    altura,
+                    peso,
+                });
+            } else {
+                console.error("Erro ao verificar email:", error);
+                Alert.alert("Erro", "Não foi possível verificar o e-mail. Tente novamente.");
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -241,11 +257,16 @@ export const CreateParticipantScreen = () => {
                     {/* Botão Cadastrar */}
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
-                            style={styles.button}
+                            style={[styles.button, isLoading && styles.buttonDisabled]}
                             activeOpacity={0.8}
                             onPress={handleContinuar}
+                            disabled={isLoading}
                         >
-                            <Text style={styles.buttonText}>Continuar</Text>
+                            {isLoading ? (
+                                <ActivityIndicator color="#FFFFFF" />
+                            ) : (
+                                <Text style={styles.buttonText}>Continuar</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -284,6 +305,17 @@ export const CreateParticipantScreen = () => {
                             }}
                         >
                             <Text style={styles.modalOptionText}>Masculino</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.modalOption}
+                            activeOpacity={0.8}
+                            onPress={() => {
+                                setSexo("Outro");
+                                setSexoModalOpen(false);
+                            }}
+                        >
+                            <Text style={styles.modalOptionText}>Outro</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -468,6 +500,9 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
+    },
+    buttonDisabled: {
+        opacity: 0.7,
     },
     buttonText: {
         color: "#FFFFFF",

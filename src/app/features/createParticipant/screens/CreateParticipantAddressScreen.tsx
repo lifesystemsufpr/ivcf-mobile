@@ -132,7 +132,7 @@ export const CreateParticipantAddressScreen = () => {
             return;
         }
         if (!gender) {
-            Alert.alert("Atenção", "Sexo inválido. Use Masculino ou Feminino.");
+            Alert.alert("Atenção", "Sexo inválido. Use Masculino, Feminino ou Outro.");
             return;
         }
 
@@ -149,6 +149,7 @@ export const CreateParticipantAddressScreen = () => {
             state: estado,
             scholarship: scholarship,
             socio_economic_level: socialLevel,
+            gender: gender,
             user: {
                 fullName: nome,
                 email,

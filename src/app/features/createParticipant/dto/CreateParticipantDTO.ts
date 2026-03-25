@@ -1,4 +1,4 @@
-export type GenderDTO = "FEMALE" | "MALE";
+export type GenderDTO = "FEMALE" | "MALE"
 
 export type CreateParticipantPayloadDTO = {
     birthday: string; // yyyy-mm-dd
@@ -13,6 +13,7 @@ export type CreateParticipantPayloadDTO = {
     neighborhood: string;
     city: string;
     state: string;
+    gender: GenderDTO;
     user: {
         fullName: string;
         email: string;
@@ -21,5 +22,3 @@ export type CreateParticipantPayloadDTO = {
         active: boolean;
     };
 };
-
- 
