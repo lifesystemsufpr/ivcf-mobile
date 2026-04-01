@@ -10,6 +10,9 @@ import {
     LayoutAnimation,
     Platform,
     UIManager,
+    Modal,
+    Pressable,
+    SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../auth/store/useAuthStore";
@@ -105,7 +108,15 @@ const AccordionItem = ({ domain }: { domain: any }) => {
 
 export const HistoryDetailScreen = ({ navigation, route }: any) => {
     const user = useAuthStore((state) => state.user);
+    const logout = useAuthStore((state) => state.logout);
     const { participant, history } = route.params || {};
+
+    const [menuVisible, setMenuVisible] = useState(false);
+
+    const handleLogout = () => {
+        setMenuVisible(false);
+        logout();
+    };
 
     const domains = React.useMemo(() => {
         if (!history || !history.answers) return [];
@@ -134,15 +145,22 @@ export const HistoryDetailScreen = ({ navigation, route }: any) => {
         }
     };
 
-    const color = history?.classification === "Robusto" ? "#8BC34A" : history?.classification === "Pré-Frágil" ? "#FFA726" : "#FF4B4B";
+    const color = history?.classification === "Robusto" ? "#72AB24" : history?.classification === "Pré-Frágil" ? "#FFA726" : "#FF4B4B";
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
 
             {/* Header */}
-            <View style={styles.header}>
+            <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
+                <View style={styles.header}>
                 <View style={styles.headerLeft}>
+                    <TouchableOpacity
+                        style={{ marginRight: 16 }}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
+                    </TouchableOpacity>
                     <View style={styles.avatar}>
                         <Ionicons name="person-outline" size={28} color="#1F4273" />
                     </View>
@@ -151,10 +169,55 @@ export const HistoryDetailScreen = ({ navigation, route }: any) => {
                         <Text style={styles.headerName}>{user?.name ?? "Usuário"}</Text>
                     </View>
                 </View>
-                <TouchableOpacity style={styles.menuButton}>
+                <TouchableOpacity
+                    style={styles.menuButton}
+                    onPress={() => setMenuVisible(true)}
+                >
                     <Ionicons name="menu" size={28} color="#FFFFFF" />
                 </TouchableOpacity>
-            </View>
+                </View>
+            </SafeAreaView>
+
+            {/* Dropdown Menu */}
+            <Modal
+                visible={menuVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setMenuVisible(false)}
+            >
+                <Pressable
+                    style={styles.menuOverlay}
+                    onPress={() => setMenuVisible(false)}
+                >
+                    <View style={styles.menuDropdown}>
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={() => {
+                                setMenuVisible(false);
+                                navigation.navigate("Add", {
+                                    screen: "SearchParticipant",
+                                    params: { fromMenu: true },
+                                });
+                            }}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="search" size={20} color="#1F4273" />
+                            <Text style={[styles.menuItemText, { color: "#1F4273" }]}>Pesquisar participante</Text>
+                        </TouchableOpacity>
+
+                        <View style={{ height: 1, backgroundColor: "#E0E0E0", width: "100%" }} />
+
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={handleLogout}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="log-out-outline" size={20} color="#F44336" />
+                            <Text style={styles.menuItemText}>Sair</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Pressable>
+            </Modal>
 
             <ScrollView
                 style={styles.scrollArea}
@@ -210,7 +273,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingTop: 48,
+        paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 16 : 16,
         paddingBottom: 16,
         paddingHorizontal: 20,
     },
@@ -243,6 +306,36 @@ const styles = StyleSheet.create({
     },
     menuButton: {
         padding: 4,
+    },
+    menuOverlay: {
+        flex: 1,
+    },
+    menuDropdown: {
+        position: "absolute",
+        top: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 60 : 60,
+        right: 20,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 12,
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+        elevation: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        minWidth: 150,
+    },
+    menuItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        gap: 10,
+    },
+    menuItemText: {
+        fontSize: 15,
+        fontWeight: "500",
+        color: "#F44336",
     },
 
     scrollArea: {
@@ -287,7 +380,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: "#8BC34A",
+        borderColor: "#72AB24",
         padding: 16,
         marginBottom: 24,
     },
@@ -366,32 +459,5 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "bold",
         color: "#1F4273",
-    },
-
-    // Footer
-    footer: {
-        paddingHorizontal: 24,
-        paddingBottom: 32,
-        paddingTop: 16,
-        backgroundColor: "#F5F6FA",
-        alignItems: "center",
-    },
-    printButton: {
-        backgroundColor: "#8BC34A",
-        paddingVertical: 14,
-        paddingHorizontal: 32,
-        borderRadius: 8,
-        width: "100%",
-        alignItems: "center",
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-    },
-    printButtonText: {
-        color: "#FFFFFF",
-        fontSize: 16,
-        fontWeight: "bold",
     },
 });

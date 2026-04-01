@@ -1,6 +1,7 @@
 import React from "react";
 import {
     View,
+    SafeAreaView,
     Text,
     Image,
     TouchableOpacity,
@@ -18,7 +19,7 @@ export const SplashScreen = () => {
     const navigation = useNavigation<SplashNavigationProp>();
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#2B4C7E" />
 
             {/* Logo Section */}
@@ -51,7 +52,7 @@ export const SplashScreen = () => {
                     <Text style={styles.buttonText}>Novo Responsável</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     button: {
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
         paddingVertical: 14,
         paddingHorizontal: 40,
         borderRadius: 25,

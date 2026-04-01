@@ -356,8 +356,8 @@ const styles = StyleSheet.create({
         marginLeft: 12,
     },
     checkboxChecked: {
-        backgroundColor: "#8BC34A",
-        borderColor: "#8BC34A",
+        backgroundColor: "#72AB24",
+        borderColor: "#72AB24",
     },
     checkmark: {
         color: "#FFFFFF",
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
     },
     button: {
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
         paddingVertical: 14,
         borderRadius: 25,
         width: width * 0.55,

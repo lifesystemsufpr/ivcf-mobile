@@ -6,6 +6,8 @@ import {
     StatusBar,
     ScrollView,
     TouchableOpacity,
+    SafeAreaView,
+    Platform,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,10 +39,12 @@ export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
 
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>IVCF-20</Text>
-                <Text style={styles.headerSubtitle}>Instruções</Text>
-            </View>
+            <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
+                <View style={styles.header}>
+                    <Text style={styles.headerTitle}>IVCF-20</Text>
+                    <Text style={styles.headerSubtitle}>Instruções</Text>
+                </View>
+            </SafeAreaView>
 
             {/* Content */}
             <ScrollView
@@ -78,13 +82,15 @@ export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
                     </View>
 
                     {/* Iniciar Button */}
-                    <TouchableOpacity
-                        style={styles.button}
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate("Questionnaire", { participant })}
-                    >
-                        <Text style={styles.buttonText}>Iniciar</Text>
-                    </TouchableOpacity>
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                            style={styles.button}
+                            activeOpacity={0.8}
+                            onPress={() => navigation.navigate("Questionnaire", { participant })}
+                        >
+                            <Text style={styles.buttonText}>Iniciar</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </ScrollView>
 
@@ -104,48 +110,39 @@ const styles = StyleSheet.create({
         backgroundColor: "#1F4273",
         alignItems: "center",
         justifyContent: "center",
-        paddingTop: 70,
-        paddingBottom: 24,
+        paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 24 : 16,
+        paddingBottom: 40,
         paddingHorizontal: 20,
     },
-
-    
     headerTitle: {
         color: "#FFFFFF",
         fontSize: 40,
         fontWeight: "bold",
-        marginTop: 60,
     },
-
-
-
     headerSubtitle: {
         color: "#FFFFFF",
-        fontSize: 35,
+        fontSize: 28, // Reduced slightly for better scaling
         fontWeight: "bold",
-        marginTop: 10,
-      
+        marginTop: 6,
     },
 
     // Content
     content: {
-        height: "100%",
+        flex: 1,
         width: "100%",
-        marginTop: 50,
+        marginTop: 20, // Replaced hardcoded marginTop: 50 with a softer gap
     },
-
     contentContainer: {
-        height: "100%",
-        width: "100%",
+        flexGrow: 1,
     },
     card: {
+        flex: 1,
         backgroundColor: "#FFFFFF",
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         paddingHorizontal: 24,
-        paddingTop: 24,
-        marginTop: 0,
-        height: "100%",
+        paddingTop: 32,
+        paddingBottom: 40,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
@@ -192,12 +189,16 @@ const styles = StyleSheet.create({
     },
 
     // Button
+    buttonContainer: {
+        marginTop: "auto",
+        alignItems: "center",
+        paddingTop: 20,
+    },
     button: {
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
         paddingVertical: 14,
         borderRadius: 25,
         width: 160,
-        alignSelf: "center",
         alignItems: "center",
         elevation: 3,
         shadowColor: "#000",

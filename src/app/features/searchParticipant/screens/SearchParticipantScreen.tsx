@@ -10,6 +10,8 @@ import {
     ActivityIndicator,
     Modal,
     Pressable,
+    SafeAreaView,
+    Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -71,7 +73,8 @@ export const SearchParticipantScreen = ({ route }: any) => {
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
 
             {/* Header */}
-            <View style={styles.header}>
+            <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
+                <View style={styles.header}>
                 <View style={styles.headerLeft}>
                     <View style={styles.avatar}>
                         <Ionicons name="person-outline" size={28} color="#1F4273" />
@@ -87,7 +90,8 @@ export const SearchParticipantScreen = ({ route }: any) => {
                 >
                     <Ionicons name="menu" size={28} color="#FFFFFF" />
                 </TouchableOpacity>
-            </View>
+                </View>
+            </SafeAreaView>
 
             {/* Dropdown Menu */}
             <Modal
@@ -105,7 +109,10 @@ export const SearchParticipantScreen = ({ route }: any) => {
                             style={styles.menuItem}
                             onPress={() => {
                                 setMenuVisible(false);
-                                navigation.navigate("Add");
+                                navigation.navigate("Add", {
+                                    screen: "SearchParticipant",
+                                    params: { fromMenu: true },
+                                });
                             }}
                             activeOpacity={0.7}
                         >
@@ -141,6 +148,11 @@ export const SearchParticipantScreen = ({ route }: any) => {
                         onChangeText={setSearchName}
                         autoCapitalize="words"
                     />
+                    {searchName.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchName("")} style={{ padding: 4 }}>
+                            <Ionicons name="close-circle" size={20} color="#A0A0A0" />
+                        </TouchableOpacity>
+                    )}
                     <Ionicons name="search" size={22} color="#1F4273" style={styles.searchIcon} />
                 </View>
 
@@ -182,7 +194,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingTop: 48,
+        paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 16 : 16,
         paddingBottom: 16,
         paddingHorizontal: 20,
     },
@@ -221,7 +233,7 @@ const styles = StyleSheet.create({
     },
     menuDropdown: {
         position: "absolute",
-        top: 90,
+        top: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 60 : 60,
         right: 20,
         backgroundColor: "#FFFFFF",
         borderRadius: 12,

@@ -9,8 +9,11 @@ import {
     TouchableOpacity,
     Modal,
     Pressable,
+    Alert,
+    ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import { fetchDashboardData } from "../services/DashboardService";
@@ -37,13 +40,22 @@ const BarChart = ({
     title: string;
     subtitle?: string;
     data: BarData[];
-    maxValue: number;
+    maxValue: number; // Max value mapped from data
     legendItems?: { label: string; color: string }[];
 }) => {
     const CHART_HEIGHT = 180;
     const steps = 4;
-    const stepValue = Math.ceil(maxValue / steps);
-    const adjustedMax = stepValue * steps;
+
+    let stepValue = Math.ceil(maxValue / steps);
+    if (stepValue === 0) stepValue = 1; // Previne max 0 ou crash no division
+    let adjustedMax = stepValue * steps;
+
+    // Garante que a barra mais alta ocupe no máximo ~85% do gráfico 
+    // para não esmagar esconder o número acima dela
+    while (maxValue / adjustedMax > 0.75) {
+        stepValue++;
+        adjustedMax = stepValue * steps;
+    }
 
     return (
         <View style={chartStyles.container}>
@@ -77,7 +89,11 @@ const BarChart = ({
                     ))}
 
                     {/* Bars */}
-                    <View style={[chartStyles.barsRow, { height: CHART_HEIGHT }]}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={[chartStyles.barsRow, { height: CHART_HEIGHT, minWidth: "100%" }]}
+                    >
                         {data.map((item, index) => {
                             const barHeight = (item.value / adjustedMax) * CHART_HEIGHT;
                             return (
@@ -98,7 +114,7 @@ const BarChart = ({
                                 </View>
                             );
                         })}
-                    </View>
+                    </ScrollView>
                 </View>
             </View>
 
@@ -124,6 +140,7 @@ const BarChart = ({
 
 // ─── Dashboard Screen ────────────────────────────────────────────────
 export const DashboardScreen = () => {
+    const insets = useSafeAreaInsets();
     const [menuVisible, setMenuVisible] = useState(false);
     const [totalParticipants, setTotalParticipants] = useState(0);
     const [averageScore, setAverageScore] = useState(0);
@@ -143,12 +160,12 @@ export const DashboardScreen = () => {
                 const rawTotal = data.totalParticipants;
                 const total = typeof rawTotal === 'number' ? rawTotal : rawTotal?.totalParticipants ?? 0;
                 setTotalParticipants(total);
-                
+
                 // Formata o avg score
                 const rawAvg = data.averageScore;
                 const avgScoreValue = typeof rawAvg === 'number' ? rawAvg : rawAvg?.averageScore ?? 0;
                 setAverageScore(typeof avgScoreValue === "number" ? parseFloat(avgScoreValue.toFixed(1)) : 0);
-                
+
                 if (Array.isArray(data.ageDistribution)) {
                     const colors = ["#4CAF50", "#FFC107", "#F44336", "#2196F3", "#9C27B0"];
                     setAgeData(data.ageDistribution.map((item, idx) => ({
@@ -172,7 +189,10 @@ export const DashboardScreen = () => {
                     }));
                 }
             })
-            .catch(err => console.error(err))
+            .catch(err => {
+                console.error(err);
+                if (mounted) Alert.alert("Erro", "Não foi possível carregar os dados do dashboard.");
+            })
             .finally(() => mounted && setLoading(false));
 
         return () => { mounted = false; };
@@ -192,7 +212,7 @@ export const DashboardScreen = () => {
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
                 <View style={styles.headerLeft}>
                     <View style={styles.avatar}>
                         <Ionicons name="person-outline" size={28} color="#1F4273" />
@@ -221,7 +241,7 @@ export const DashboardScreen = () => {
                     style={styles.menuOverlay}
                     onPress={() => setMenuVisible(false)}
                 >
-                    <View style={styles.menuDropdown}>
+                    <View style={[styles.menuDropdown, { top: insets.top + 65 }]}>
                         <TouchableOpacity
                             style={styles.menuItem}
                             onPress={() => {
@@ -254,18 +274,18 @@ export const DashboardScreen = () => {
             {/* Content */}
             <ScrollView
                 style={styles.content}
-                contentContainerStyle={styles.contentContainer}
+                contentContainerStyle={[styles.contentContainer, { paddingBottom: Math.max(insets.bottom + 100, 120) }]}
                 showsVerticalScrollIndicator={false}
             >
                 {/* Stats Cards */}
                 <View style={styles.statsRow}>
                     <View style={styles.statCard}>
-                        <Text style={styles.statLabel}>Total na coorte</Text>
-                        <Text style={styles.statValue}>{loading ? "..." : totalParticipants}</Text>
+                        <Text style={styles.statLabel}>Total de participantes</Text>
+                        {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'flex-start' }} /> : <Text style={styles.statValue}>{totalParticipants}</Text>}
                     </View>
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>Score médio</Text>
-                        <Text style={styles.statValue}>{loading ? "..." : averageScore}</Text>
+                        {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'flex-start' }} /> : <Text style={styles.statValue}>{averageScore}</Text>}
                     </View>
                 </View>
 
@@ -306,7 +326,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingTop: 48,
         paddingBottom: 16,
         paddingHorizontal: 20,
     },
@@ -345,7 +364,6 @@ const styles = StyleSheet.create({
     },
     menuDropdown: {
         position: "absolute",
-        top: 90,
         right: 20,
         backgroundColor: "#FFFFFF",
         borderRadius: 12,
@@ -463,6 +481,8 @@ const chartStyles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "flex-end",
         justifyContent: "space-evenly",
+        paddingHorizontal: 12,
+        gap: 20,
     },
     barWrapper: {
         alignItems: "center",

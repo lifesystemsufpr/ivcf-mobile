@@ -7,6 +7,8 @@ import {
     TouchableOpacity,
     ScrollView,
     ActivityIndicator,
+    SafeAreaView,
+    Platform,
 } from "react-native";
 import { useQuestionnaire } from "../hooks/useQuestionnaire";
 import { useRoute } from "@react-navigation/native";
@@ -193,8 +195,9 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
 
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>IVCF-20</Text>
+            <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
+                <View style={styles.header}>
+                    <Text style={styles.headerTitle}>IVCF-20</Text>
                 <View style={styles.progressContainer}>
                     <View style={styles.progressBackground} />
                     <View
@@ -207,7 +210,8 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={styles.headerSubtitle}>
                     QUESTÃO {currentIndex + 1} de {TOTAL_QUESTIONS}
                 </Text>
-            </View>
+                </View>
+            </SafeAreaView>
 
             <View style={styles.contentWrapper}>
                 <ScrollView
@@ -317,7 +321,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 32,
     },
     retryButton: {
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
         paddingVertical: 12,
         paddingHorizontal: 32,
         borderRadius: 24,
@@ -331,7 +335,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#1F4273",
         alignItems: "center",
         justifyContent: "center",
-        paddingTop: 48,
+        paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 16 : 16,
         paddingBottom: 20,
         paddingHorizontal: 20,
     },
@@ -356,7 +360,7 @@ const styles = StyleSheet.create({
     progressBar: {
         height: 4,
         borderRadius: 2,
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
     },
     headerSubtitle: {
         color: "#FFFFFF",
@@ -371,7 +375,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 28,
         paddingHorizontal: 24,
         paddingTop: 24,
-        paddingBottom: 200,
+        paddingBottom: 40,
     },
     content: {
         paddingBottom: 24,
@@ -407,8 +411,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
     },
     optionButtonSelected: {
-        backgroundColor: "#8BC34A",
-        borderColor: "#8BC34A",
+        backgroundColor: "#72AB24",
+        borderColor: "#72AB24",
     },
     optionText: {
         color: "#1F4273",
@@ -433,18 +437,18 @@ const styles = StyleSheet.create({
     navButtonSecondary: {
         marginRight: 8,
         borderWidth: 1,
-        borderColor: "#8BC34A",
+        borderColor: "#72AB24",
         backgroundColor: "#FFFFFF",
     },
     navButtonPrimary: {
         marginLeft: 8,
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
     },
     navButtonDisabled: {
         borderColor: "#C5CED8",
     },
     navButtonTextSecondary: {
-        color: "#8BC34A",
+        color: "#72AB24",
         fontSize: 14,
         fontWeight: "600",
     },

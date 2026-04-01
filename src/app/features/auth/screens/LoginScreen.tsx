@@ -13,6 +13,7 @@ import {
     ScrollView,
     ActivityIndicator,
     Alert,
+    SafeAreaView,
 } from "react-native";
 import { useAuth } from "../hooks/useAuth";
 import { useAuthStore } from "../store/useAuthStore";
@@ -55,16 +56,18 @@ export const LoginScreen = () => {
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
 
             {/* Header com logo */}
-            <View style={styles.header}>
-                <Image
-                    source={require("../../../../../assets/logo.png")}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
-                <Text style={styles.headerSubtitle}>
-                    Avaliação Clínica e Funcional Simplificada
-                </Text>
-            </View>
+            <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
+                <View style={styles.header}>
+                    <Image
+                        source={require("../../../../../assets/logo.png")}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.headerSubtitle}>
+                        Avaliação Clínica e Funcional Simplificada
+                    </Text>
+                </View>
+            </SafeAreaView>
 
             {/* Card de Login */}
             <KeyboardAvoidingView
@@ -100,7 +103,7 @@ export const LoginScreen = () => {
                                 <Text style={styles.label}>Senha</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Value"
+                                    placeholder="Digite sua senha"
                                     placeholderTextColor="#A0A0A0"
                                     value={senha}
                                     onChangeText={setSenha}
@@ -147,7 +150,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#1F4273",
         alignItems: "center",
         justifyContent: "center",
-        paddingTop: 50,
+        paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 16 : 16,
         paddingBottom: 30,
     },
     logo: {
@@ -215,7 +218,7 @@ const styles = StyleSheet.create({
         fontWeight: "500",
     },
     button: {
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
         paddingVertical: 14,
         borderRadius: 25,
         width: width * 0.50,

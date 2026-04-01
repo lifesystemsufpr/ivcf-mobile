@@ -6,6 +6,10 @@ import {
     StatusBar,
     TouchableOpacity,
     ScrollView,
+    Modal,
+    Pressable,
+    SafeAreaView,
+    Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../auth/store/useAuthStore";
@@ -14,9 +18,16 @@ import { fetchParticipantHistory } from "../services/SearchParticipantService";
 export const UserDetailScreen = ({ navigation, route }: any) => {
     const { participant } = route.params;
     const user = useAuthStore((state) => state.user);
+    const logout = useAuthStore((state) => state.logout);
     const [activeTab, setActiveTab] = useState<"dados" | "historico">("dados");
     const [historyList, setHistoryList] = useState<any[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);
+
+    const handleLogout = () => {
+        setMenuVisible(false);
+        logout();
+    };
 
     useEffect(() => {
         if (activeTab === "historico") {
@@ -46,8 +57,15 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
 
             {/* Header */}
-            <View style={styles.header}>
+            <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
+                <View style={styles.header}>
                 <View style={styles.headerLeft}>
+                    <TouchableOpacity
+                        style={{ marginRight: 16 }}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
+                    </TouchableOpacity>
                     <View style={styles.avatar}>
                         <Ionicons name="person-outline" size={28} color="#1F4273" />
                     </View>
@@ -56,10 +74,55 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
                         <Text style={styles.headerName}>{user?.name ?? "Usuário"}</Text>
                     </View>
                 </View>
-                <TouchableOpacity style={styles.menuButton}>
+                <TouchableOpacity
+                    style={styles.menuButton}
+                    onPress={() => setMenuVisible(true)}
+                >
                     <Ionicons name="menu" size={28} color="#FFFFFF" />
                 </TouchableOpacity>
-            </View>
+                </View>
+            </SafeAreaView>
+
+            {/* Dropdown Menu */}
+            <Modal
+                visible={menuVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setMenuVisible(false)}
+            >
+                <Pressable
+                    style={styles.menuOverlay}
+                    onPress={() => setMenuVisible(false)}
+                >
+                    <View style={styles.menuDropdown}>
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={() => {
+                                setMenuVisible(false);
+                                navigation.navigate("Add", {
+                                    screen: "SearchParticipant",
+                                    params: { fromMenu: true },
+                                });
+                            }}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="search" size={20} color="#1F4273" />
+                            <Text style={[styles.menuItemText, { color: "#1F4273" }]}>Pesquisar participante</Text>
+                        </TouchableOpacity>
+
+                        <View style={{ height: 1, backgroundColor: "#E0E0E0", width: "100%" }} />
+
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={handleLogout}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="log-out-outline" size={20} color="#F44336" />
+                            <Text style={styles.menuItemText}>Sair</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Pressable>
+            </Modal>
 
             {/* Participant Name Title */}
             <View style={styles.titleContainer}>
@@ -128,7 +191,7 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
                                 <Text style={styles.label}>IMC (Kg/m²)</Text>
                                 <Text style={styles.value}>
                                     {/* Mock calculation or display existing */}
-                                    {participant.weight && participant.height
+                                    {participant.weight && participant.height && participant.height > 0
                                         ? (
                                             participant.weight /
                                             Math.pow(participant.height / 100, 2)
@@ -144,10 +207,10 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
                         <View style={[styles.row, { borderBottomWidth: 0, paddingBottom: 0 }]}>
                             <View style={[styles.col, { flex: 2 }]}>
                                 <Text style={styles.label}>Endereço</Text>
-                                <Text style={styles.value} numberOfLines={1}>
+                                <Text style={[styles.value, { flexWrap: "wrap" }]}>
                                     {participant.street ? `${participant.street}, ${participant.number || "S/N"}` : "Não informado"}
                                 </Text>
-                                <Text style={styles.addressSub} numberOfLines={1}>
+                                <Text style={[styles.addressSub, { flexWrap: "wrap" }]}>
                                     {participant.neighborhood ? `${participant.neighborhood} - ${participant.city} - ${participant.state}` : ""}
                                 </Text>
                             </View>
@@ -165,7 +228,7 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
                             <Text style={styles.placeholderText}>Nenhum questionário encontrado.</Text>
                         ) : (
                             historyList.map((item) => {
-                                const color = item.classification === "Robusto" ? "#8BC34A" : item.classification === "Pré-Frágil" ? "#FFA726" : "#FF4B4B";
+                                const color = item.classification === "Robusto" ? "#72AB24" : item.classification === "Pré-Frágil" ? "#FFA726" : "#FF4B4B";
                                 return (
                                     <TouchableOpacity
                                         key={item.id}
@@ -208,7 +271,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingTop: 48,
+        paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 16 : 16,
         paddingBottom: 16,
         paddingHorizontal: 20,
     },
@@ -241,6 +304,36 @@ const styles = StyleSheet.create({
     },
     menuButton: {
         padding: 4,
+    },
+    menuOverlay: {
+        flex: 1,
+    },
+    menuDropdown: {
+        position: "absolute",
+        top: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 60 : 60,
+        right: 20,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 12,
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+        elevation: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        minWidth: 150,
+    },
+    menuItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        gap: 10,
+    },
+    menuItemText: {
+        fontSize: 15,
+        fontWeight: "500",
+        color: "#F44336",
     },
 
     // Title Section
@@ -385,48 +478,6 @@ const styles = StyleSheet.create({
     },
     historyBadgeText: {
         fontSize: 10,
-        fontWeight: "bold",
-    },
-
-    // Footer
-    footer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        paddingHorizontal: 24,
-        paddingTop: 16,
-        paddingBottom: 32,
-        backgroundColor: "#F5F6FA",
-    },
-    navButton: {
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 8,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    secondaryButton: {
-        backgroundColor: "#FFFFFF",
-        borderWidth: 1,
-        borderColor: "#8BC34A",
-        marginRight: 12,
-    },
-    secondaryText: {
-        color: "#8BC34A",
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    primaryButton: {
-        backgroundColor: "#8BC34A",
-        marginLeft: 12,
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-    },
-    primaryText: {
-        color: "#FFFFFF",
-        fontSize: 16,
         fontWeight: "bold",
     },
 });

@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateParticipantStackParamList } from "../navigation/types";
 import { createParticipantApi } from "../api/createParticipantApi";
 
@@ -23,6 +24,7 @@ type NavigationProp = NativeStackNavigationProp<CreateParticipantStackParamList,
 
 export const CreateParticipantScreen = () => {
     const navigation = useNavigation<NavigationProp>();
+    const insets = useSafeAreaInsets();
 
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
@@ -33,6 +35,9 @@ export const CreateParticipantScreen = () => {
     const [altura, setAltura] = useState("");
     const [peso, setPeso] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [focusedField, setFocusedField] = useState<string | null>(null);
+
+    const getBorderColor = (field: string) => focusedField === field ? "#1F4273" : "#C5CED8";
 
     const handleEmailChange = (text: string) => {
         setEmail(text.trim().toLowerCase());
@@ -145,7 +150,7 @@ export const CreateParticipantScreen = () => {
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
             >
                 <ScrollView
-                    contentContainerStyle={styles.scrollContent}
+                    contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20, paddingBottom: Math.max(insets.bottom + 80, 100) }]}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
@@ -161,9 +166,11 @@ export const CreateParticipantScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Nome</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("nome") }]}
                                 value={nome}
                                 onChangeText={setNome}
+                                onFocus={() => setFocusedField("nome")}
+                                onBlur={() => setFocusedField(null)}
                                 placeholder="Nome completo"
                                 placeholderTextColor="#B0BEC5"
                             />
@@ -173,9 +180,11 @@ export const CreateParticipantScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Email</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("email") }]}
                                 value={email}
                                 onChangeText={handleEmailChange}
+                                onFocus={() => setFocusedField("email")}
+                                onBlur={() => setFocusedField(null)}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 placeholder="email@exemplo.com"
@@ -186,9 +195,11 @@ export const CreateParticipantScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Telefone</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("phone") }]}
                                 value={phone}
                                 onChangeText={handlePhoneChange}
+                                onFocus={() => setFocusedField("phone")}
+                                onBlur={() => setFocusedField(null)}
                                 keyboardType="numeric"
                                 maxLength={15}
                                 placeholder="(41) 99999-8888"
@@ -199,9 +210,11 @@ export const CreateParticipantScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Data de Nascimento</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("dataNasc") }]}
                                 value={dataNasc}
                                 onChangeText={handleDateChange}
+                                onFocus={() => setFocusedField("dataNasc")}
+                                onBlur={() => setFocusedField(null)}
                                 keyboardType="numeric"
                                 maxLength={10}
                                 placeholder="dd/mm/aaaa"
@@ -212,7 +225,7 @@ export const CreateParticipantScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Sexo</Text>
                             <TouchableOpacity
-                                style={styles.selectInput}
+                                style={[styles.selectInput, { borderBottomColor: sexoModalOpen ? "#1F4273" : "#C5CED8" }]}
                                 activeOpacity={0.8}
                                 onPress={() => setSexoModalOpen(true)}
                             >
@@ -231,9 +244,11 @@ export const CreateParticipantScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Altura</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("altura") }]}
                                 value={altura}
                                 onChangeText={handleAlturaChange}
+                                onFocus={() => setFocusedField("altura")}
+                                onBlur={() => setFocusedField(null)}
                                 keyboardType="numeric"
                                 maxLength={3}
                                 placeholder="170 (em cm)"
@@ -244,9 +259,11 @@ export const CreateParticipantScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Peso</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("peso") }]}
                                 value={peso}
                                 onChangeText={setPeso}
+                                onFocus={() => setFocusedField("peso")}
+                                onBlur={() => setFocusedField(null)}
                                 placeholder="70kg"
                                 placeholderTextColor="#B0BEC5"
                             />
@@ -275,14 +292,14 @@ export const CreateParticipantScreen = () => {
             <Modal
                 visible={sexoModalOpen}
                 transparent
-                animationType="fade"
+                animationType="slide"
                 onRequestClose={() => setSexoModalOpen(false)}
             >
                 <Pressable
                     style={styles.modalBackdrop}
                     onPress={() => setSexoModalOpen(false)}
                 >
-                    <Pressable style={styles.modalCard} onPress={() => null}>
+                    <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
                         <Text style={styles.modalTitle}>Sexo</Text>
 
                         <TouchableOpacity
@@ -345,7 +362,6 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
         paddingHorizontal: 28,
-        marginTop: 75,
         paddingBottom: 30,
     },
 
@@ -411,24 +427,25 @@ const styles = StyleSheet.create({
     modalBackdrop: {
         flex: 1,
         backgroundColor: "rgba(0,0,0,0.35)",
-        paddingHorizontal: 24,
-        justifyContent: "center",
+        justifyContent: "flex-end",
     },
     modalCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingTop: 24,
+        paddingBottom: 40,
+        paddingHorizontal: 24,
     },
     modalTitle: {
         fontSize: 16,
         fontWeight: "700",
         color: "#1F4273",
-        marginBottom: 12,
+        marginBottom: 16,
         textAlign: "center",
     },
     modalOption: {
-        paddingVertical: 12,
+        paddingVertical: 14,
         borderRadius: 12,
         backgroundColor: "#EDF1F7",
         marginBottom: 10,
@@ -440,49 +457,18 @@ const styles = StyleSheet.create({
         color: "#1F4273",
     },
     modalCancel: {
-        paddingVertical: 12,
+        paddingVertical: 14,
         borderRadius: 12,
         backgroundColor: "#FFFFFF",
         borderWidth: 1,
         borderColor: "#C5CED8",
         alignItems: "center",
-        marginTop: 4,
+        marginTop: 8,
     },
     modalCancelText: {
         fontSize: 14,
         fontWeight: "600",
         color: "#6B7B8D",
-    },
-    termsRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: 40,
-    },
-    termsText: {
-        fontSize: 13,
-        color: "#1F4273",
-        fontWeight: "500",
-        flex: 1,
-    },
-    checkbox: {
-        width: 22,
-        height: 22,
-        borderRadius: 4,
-        borderWidth: 2,
-        borderColor: "#C5CED8",
-        alignItems: "center",
-        justifyContent: "center",
-        marginLeft: 12,
-    },
-    checkboxChecked: {
-        backgroundColor: "#8BC34A",
-        borderColor: "#8BC34A",
-    },
-    checkmark: {
-        color: "#FFFFFF",
-        fontSize: 14,
-        fontWeight: "bold",
     },
     buttonContainer: {
         alignItems: "center",
@@ -490,7 +476,7 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
     },
     button: {
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
         paddingVertical: 14,
         borderRadius: 25,
         width: 200,

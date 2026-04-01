@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardNavigator } from "../features/dashboard";
 import { SearchParticipantNavigator } from "../features/searchParticipant";
 import { CreateParticipantNavigator } from "../features/createParticipant";
@@ -11,6 +12,8 @@ const Tab = createBottomTabNavigator();
 
 // ─── Custom Tab Bar ──────────────────────────────────────────────────
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
+
   const onTabPress = (route: any, index: number) => {
     const isFocused = state.index === index;
     const event = navigation.emit({
@@ -18,8 +21,15 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       target: route.key,
       canPreventDefault: true,
     });
-    if (!isFocused && !event.defaultPrevented) {
-      navigation.navigate(route.name);
+    if (!event.defaultPrevented) {
+      if (route.name === "Add") {
+        navigation.navigate("Add", {
+          screen: "SearchParticipant",
+          params: { fromMenu: false },
+        });
+      } else if (!isFocused) {
+        navigation.navigate(route.name);
+      }
     }
   };
 
@@ -57,7 +67,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   }
 
   return (
-    <View style={tabStyles.wrapper}>
+    <View style={[tabStyles.wrapper, { bottom: insets.bottom + 16 }]}>
       <View style={tabStyles.bar}>
         {/* Left icon - Home */}
         <TouchableOpacity
@@ -112,7 +122,7 @@ export function MainNavigator() {
     >
       <Tab.Screen name="Home" component={DashboardNavigator} />
       <Tab.Screen name="Add" component={SearchParticipantNavigator} />
-      <Tab.Screen name="Participants" component={CreateParticipantNavigator} />
+      <Tab.Screen name="Participants" component={CreateParticipantNavigator} options={{ unmountOnBlur: true } as any} />
     </Tab.Navigator>
   );
 }
@@ -121,7 +131,6 @@ export function MainNavigator() {
 const tabStyles = StyleSheet.create({
   wrapper: {
     position: "absolute",
-    bottom: 16,
     left: 20,
     right: 20,
     alignItems: "center",
@@ -164,11 +173,11 @@ const tabStyles = StyleSheet.create({
     bottom: 0,
   },
   centerButton: {
-    width: 74,
-    height: 74,
+    width: 77,
+    height: 77,
     borderRadius: 37,
 
-    backgroundColor: "#8BC34A",
+    backgroundColor: "#72AB24",
     alignItems: "center",
     justifyContent: "center",
     ...Platform.select({
@@ -179,7 +188,7 @@ const tabStyles = StyleSheet.create({
         shadowRadius: 6,
       },
       android: {
-        elevation: 8,
+        elevation: 9,
       },
     }),
   },

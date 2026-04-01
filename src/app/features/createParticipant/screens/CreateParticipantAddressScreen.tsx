@@ -10,9 +10,11 @@ import {
     Platform,
     ScrollView,
     Alert,
+    ActivityIndicator,
 } from "react-native";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp, CommonActions } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateParticipantStackParamList } from "../navigation/types";
 import { useCreateParticipant } from "../hooks/useCreateParticipant";
 import type { CreateParticipantPayloadDTO } from "../dto/CreateParticipantDTO";
@@ -26,6 +28,7 @@ export const CreateParticipantAddressScreen = () => {
 
     const { nome, email, phone, dataNasc, sexo, altura, peso } = route.params || {};
     const createParticipant = useCreateParticipant();
+    const insets = useSafeAreaInsets();
 
     const [cep, setCep] = useState("");
     const [rua, setRua] = useState("");
@@ -34,6 +37,11 @@ export const CreateParticipantAddressScreen = () => {
     const [bairro, setBairro] = useState("");
     const [cidade, setCidade] = useState("");
     const [estado, setEstado] = useState("");
+
+    const [isCepLoading, setIsCepLoading] = useState(false);
+    const [focusedField, setFocusedField] = useState<string | null>(null);
+
+    const getBorderColor = (field: string) => focusedField === field ? "#1F4273" : "#C5CED8";
 
     const formatCEP = (text: string) => {
         const digits = text.replace(/\D/g, "").slice(0, 8);
@@ -49,6 +57,7 @@ export const CreateParticipantAddressScreen = () => {
 
         const rawCep = formatted.replace(/\D/g, "");
         if (rawCep.length === 8) {
+            setIsCepLoading(true);
             try {
                 const response = await fetch(`https://viacep.com.br/ws/${rawCep}/json/`);
                 const data = await response.json();
@@ -57,9 +66,14 @@ export const CreateParticipantAddressScreen = () => {
                     setBairro(data.bairro || "");
                     setCidade(data.localidade || "");
                     setEstado(data.uf || "");
+                } else {
+                    Alert.alert("Atenção", "CEP não encontrado.");
                 }
             } catch (error) {
                 console.error("Erro ao buscar CEP:", error);
+                Alert.alert("Erro", "Falha ao buscar endereço.");
+            } finally {
+                setIsCepLoading(false);
             }
         }
     };
@@ -162,7 +176,17 @@ export const CreateParticipantAddressScreen = () => {
         try {
             await createParticipant.mutateAsync(payload);
             Alert.alert("Sucesso", "Participante cadastrado com sucesso!");
-            navigation.navigate("CreateParticipant");
+            
+            // Forcefully clear the input fields locally by resetting the internal stack
+            navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "CreateParticipant" }],
+                })
+            );
+
+            // Navigate back to the Dashboard
+            (navigation as any).navigate("Home");
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error("Erro ao cadastrar participante:", errorMessage);
@@ -179,7 +203,7 @@ export const CreateParticipantAddressScreen = () => {
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
             >
                 <ScrollView
-                    contentContainerStyle={styles.scrollContent}
+                    contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20, paddingBottom: Math.max(insets.bottom + 80, 100) }]}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
@@ -192,24 +216,35 @@ export const CreateParticipantAddressScreen = () => {
                         {/* CEP */}
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>CEP</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={cep}
-                                onChangeText={handleCepChange}
-                                keyboardType="numeric"
-                                placeholder="00000-000"
-                                placeholderTextColor="#B0BEC5"
-                                maxLength={9}
-                            />
+                            <View>
+                                <TextInput
+                                    style={[styles.input, { borderBottomColor: getBorderColor("cep"), paddingRight: isCepLoading ? 40 : 14 }]}
+                                    value={cep}
+                                    onChangeText={handleCepChange}
+                                    onFocus={() => setFocusedField("cep")}
+                                    onBlur={() => setFocusedField(null)}
+                                    keyboardType="numeric"
+                                    placeholder="00000-000"
+                                    placeholderTextColor="#B0BEC5"
+                                    maxLength={9}
+                                />
+                                {isCepLoading && (
+                                    <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
+                                        <ActivityIndicator size="small" color="#1F4273" />
+                                    </View>
+                                )}
+                            </View>
                         </View>
 
                         {/* Rua */}
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Rua</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("rua") }]}
                                 value={rua}
                                 onChangeText={setRua}
+                                onFocus={() => setFocusedField("rua")}
+                                onBlur={() => setFocusedField(null)}
                                 placeholder="Nome da rua"
                                 placeholderTextColor="#B0BEC5"
                             />
@@ -219,9 +254,11 @@ export const CreateParticipantAddressScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Número</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("numero") }]}
                                 value={numero}
                                 onChangeText={setNumero}
+                                onFocus={() => setFocusedField("numero")}
+                                onBlur={() => setFocusedField(null)}
                                 keyboardType="numeric"
                                 placeholder="Número"
                                 placeholderTextColor="#B0BEC5"
@@ -232,32 +269,38 @@ export const CreateParticipantAddressScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Complemento</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("complemento") }]}
                                 value={complemento}
                                 onChangeText={setComplemento}
+                                onFocus={() => setFocusedField("complemento")}
+                                onBlur={() => setFocusedField(null)}
                                 placeholder="Complemento (opcional)"
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>
 
                         {/* Bairro e Cidade */}
-                        <View style={styles.row}>
-                            <View style={[styles.fieldGroup, { flex: 1 }]}>
+                        <View style={[styles.row, { flexWrap: "wrap" }]}>
+                            <View style={[styles.fieldGroup, { flex: 1, minWidth: 140 }]}>
                                 <Text style={styles.label}>Bairro</Text>
                                 <TextInput
-                                    style={styles.input}
+                                    style={[styles.input, { borderBottomColor: getBorderColor("bairro") }]}
                                     value={bairro}
                                     onChangeText={setBairro}
+                                    onFocus={() => setFocusedField("bairro")}
+                                    onBlur={() => setFocusedField(null)}
                                     placeholder="Bairro"
                                     placeholderTextColor="#B0BEC5"
                                 />
                             </View>
-                            <View style={[styles.fieldGroup, { flex: 1 }]}>
+                            <View style={[styles.fieldGroup, { flex: 1, minWidth: 140 }]}>
                                 <Text style={styles.label}>Cidade</Text>
                                 <TextInput
-                                    style={styles.input}
+                                    style={[styles.input, { borderBottomColor: getBorderColor("cidade") }]}
                                     value={cidade}
                                     onChangeText={setCidade}
+                                    onFocus={() => setFocusedField("cidade")}
+                                    onBlur={() => setFocusedField(null)}
                                     placeholder="Cidade"
                                     placeholderTextColor="#B0BEC5"
                                 />
@@ -268,9 +311,11 @@ export const CreateParticipantAddressScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Estado</Text>
                             <TextInput
-                                style={styles.input}
+                                style={[styles.input, { borderBottomColor: getBorderColor("estado") }]}
                                 value={estado}
                                 onChangeText={setEstado}
+                                onFocus={() => setFocusedField("estado")}
+                                onBlur={() => setFocusedField(null)}
                                 placeholder="Estado (UF)"
                                 placeholderTextColor="#B0BEC5"
                                 maxLength={2}
@@ -279,14 +324,21 @@ export const CreateParticipantAddressScreen = () => {
                         </View>
                     </View>
 
+                    <View style={{ flex: 1, minHeight: 40 }} />
+
                     {/* Botão Enviar */}
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
-                            style={styles.button}
+                            style={[styles.button, createParticipant.isPending && styles.buttonDisabled]}
                             activeOpacity={0.8}
                             onPress={handleEnviar}
+                            disabled={createParticipant.isPending}
                         >
-                            <Text style={styles.buttonText}>Enviar</Text>
+                            {createParticipant.isPending ? (
+                                <ActivityIndicator color="#FFFFFF" />
+                            ) : (
+                                <Text style={styles.buttonText}>Enviar</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -306,7 +358,6 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
         paddingHorizontal: 28,
-        paddingTop: 50,
         paddingBottom: 40,
     },
     stepTitle: {
@@ -350,11 +401,10 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         alignItems: "center",
-        marginTop: "20%",
         paddingTop: 20,
     },
     button: {
-        backgroundColor: "#8BC34A",
+        backgroundColor: "#72AB24",
         paddingVertical: 14,
         borderRadius: 25,
         width: 200,
@@ -369,5 +419,8 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 16,
         fontWeight: "bold",
+    },
+    buttonDisabled: {
+        opacity: 0.7,
     },
 });
