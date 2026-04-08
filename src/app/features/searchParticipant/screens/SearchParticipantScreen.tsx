@@ -60,8 +60,8 @@ export const SearchParticipantScreen = ({ route }: any) => {
                     <Ionicons name="person-outline" size={24} color="#1F4273" />
                 </View>
                 <View style={styles.cardInfo}>
-                    <Text style={styles.cardName}>{item.fullName}</Text>
-                    <Text style={styles.cardEmail}>{item.email}</Text>
+                    <Text style={styles.cardName} numberOfLines={2}>{item.fullName}</Text>
+                    <Text style={styles.cardEmail} numberOfLines={1}>{item.email}</Text>
                 </View>
             </View>
             <Ionicons name="chevron-forward" size={22} color="#AAAAAA" />
@@ -168,6 +168,7 @@ export const SearchParticipantScreen = ({ route }: any) => {
                         renderItem={renderParticipant}
                         contentContainerStyle={styles.listContent}
                         showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
                         ListEmptyComponent={
                             <Text style={styles.emptyText}>
                                 {searchName
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
 
     // List
     listContent: {
-        paddingBottom: 100,
+        paddingBottom: 120, // increased padding to uniformly clear floating tab bar
     },
 
     // Card

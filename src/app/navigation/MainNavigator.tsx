@@ -67,7 +67,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   }
 
   return (
-    <View style={[tabStyles.wrapper, { bottom: insets.bottom + 16 }]}>
+    <View style={[tabStyles.wrapper, { bottom: insets.bottom + 5 }]}>
       <View style={tabStyles.bar}>
         {/* Left icon - Home */}
         <TouchableOpacity
@@ -175,6 +175,7 @@ const tabStyles = StyleSheet.create({
   centerButton: {
     width: 77,
     height: 77,
+    top: 3,
     borderRadius: 37,
 
     backgroundColor: "#72AB24",

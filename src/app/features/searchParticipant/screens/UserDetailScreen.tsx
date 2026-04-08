@@ -238,7 +238,7 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
                                     >
                                         <View style={[styles.historyBorder, { backgroundColor: color }]} />
                                         <View style={styles.historyContent}>
-                                            <View>
+                                            <View style={{ flex: 1, paddingRight: 8 }}>
                                                 <Text style={styles.historyScore}>Pontuação: {item.totalScore}</Text>
                                                 <Text style={styles.historyDate}>Realização: {formatBirthday(item.date)}</Text>
                                             </View>
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: 24,
-        paddingBottom: 40,
+        paddingBottom: 120, // increased padding to clear any floating tab bar
     },
 
     // Info Card
@@ -468,6 +468,7 @@ const styles = StyleSheet.create({
         fontSize: 11,
         color: "#8FA0B3",
         fontWeight: "600",
+        flexWrap: "wrap",
     },
     historyBadge: {
         paddingHorizontal: 16,

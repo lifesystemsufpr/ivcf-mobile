@@ -85,15 +85,14 @@ const styles = StyleSheet.create({
     },
     buttonsSection: {
         width: "100%",
-        alignItems: "center",
+        paddingHorizontal: 48,
         gap: 16,
     },
     button: {
         backgroundColor: "#72AB24",
         paddingVertical: 14,
-        paddingHorizontal: 40,
         borderRadius: 25,
-        width: width * 0.55,
+        width: "100%",
         alignItems: "center",
         elevation: 3,
         shadowColor: "#000",

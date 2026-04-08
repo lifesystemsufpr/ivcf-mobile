@@ -22,7 +22,8 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 // Helper to group domains based on question content
-const getDomainForQuestion = (statement: string) => {
+const getDomainForQuestion = (statement?: string) => {
+    if (!statement) return "Outros";
     const s = statement.toLowerCase();
     if (s.includes("idade")) return "Idade";
     if (s.includes("saúde é")) return "Autopercepção da Saúde";
@@ -41,7 +42,7 @@ const processHistoryToDomains = (answers: any[]) => {
     const domainsMap: Record<string, { id: string; name: string; points: number; questions: any[] }> = {};
 
     answers.forEach((ans) => {
-        const domainName = getDomainForQuestion(ans.question.statement);
+        const domainName = getDomainForQuestion(ans?.question?.statement);
         if (!domainsMap[domainName]) {
             domainsMap[domainName] = {
                 id: domainName,
@@ -51,11 +52,14 @@ const processHistoryToDomains = (answers: any[]) => {
             };
         }
 
-        domainsMap[domainName].points += ans.selectedOption.score;
+        const score = ans?.selectedOption?.score ?? 0;
+        const label = ans?.selectedOption?.label ?? "Não respondido";
+
+        domainsMap[domainName].points += score;
         domainsMap[domainName].questions.push({
-            q: ans.question.statement,
-            a: ans.selectedOption.label,
-            score: ans.selectedOption.score,
+            q: ans?.question?.statement ?? "Pergunta não especificada",
+            a: label,
+            score: score,
         });
     });
 
@@ -343,7 +347,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: 24,
-        paddingBottom: 40,
+        paddingBottom: 120, // increased padding to clear any floating tab bar
     },
 
     // Patient Info 
@@ -367,6 +371,8 @@ const styles = StyleSheet.create({
     dateRow: {
         flexDirection: "row",
         alignItems: "center",
+        flexWrap: "wrap",
+        rowGap: 4,
     },
     dateText: {
         fontSize: 14,
@@ -442,6 +448,8 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "bold",
         color: "#1F4273",
+        flex: 1,
+        marginRight: 8,
     },
     accordionContent: {
         paddingHorizontal: 16,

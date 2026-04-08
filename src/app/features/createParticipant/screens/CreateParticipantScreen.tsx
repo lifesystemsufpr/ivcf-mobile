@@ -86,7 +86,7 @@ export const CreateParticipantScreen = () => {
         // Validação da Data de Nascimento
         const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
         const match = dataNasc.match(ddmmyyyy);
-        
+
         if (!match) {
             Alert.alert("Atenção", "Data de nascimento inválida. Use dd/mm/aaaa.");
             return;
@@ -322,17 +322,6 @@ export const CreateParticipantScreen = () => {
                             }}
                         >
                             <Text style={styles.modalOptionText}>Masculino</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.modalOption}
-                            activeOpacity={0.8}
-                            onPress={() => {
-                                setSexo("Outro");
-                                setSexoModalOpen(false);
-                            }}
-                        >
-                            <Text style={styles.modalOptionText}>Outro</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
