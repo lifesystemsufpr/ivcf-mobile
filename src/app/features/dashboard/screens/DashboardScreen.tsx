@@ -11,12 +11,13 @@ import {
     Pressable,
     Alert,
     ActivityIndicator,
+    RefreshControl,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { useNavigation, CommonActions } from "@react-navigation/native";
-import { fetchDashboardData } from "../services/DashboardService";
+import { useDashboard } from "../hooks/useDashboard";
 
 const { width } = Dimensions.get("window");
 
@@ -142,61 +143,37 @@ const BarChart = ({
 export const DashboardScreen = () => {
     const insets = useSafeAreaInsets();
     const [menuVisible, setMenuVisible] = useState(false);
-    const [totalParticipants, setTotalParticipants] = useState(0);
-    const [averageScore, setAverageScore] = useState(0);
-    const [riskData, setRiskData] = useState<BarData[]>([]);
-    const [ageData, setAgeData] = useState<BarData[]>([]);
-    const [loading, setLoading] = useState(true);
-
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const navigation = useNavigation<any>();
 
+    const {
+        totalParticipants,
+        averageScore,
+        riskData,
+        ageData,
+        isLoading: loading,
+        error,
+        refetch
+    } = useDashboard();
+
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = React.useCallback(async () => {
+        setRefreshing(true);
+        try {
+            await refetch();
+        } finally {
+            setRefreshing(false);
+        }
+    }, [refetch]);
+
     useEffect(() => {
-        let mounted = true;
-        fetchDashboardData()
-            .then(data => {
-                if (!mounted) return;
-                const rawTotal = data.totalParticipants;
-                const total = typeof rawTotal === 'number' ? rawTotal : rawTotal?.totalParticipants ?? 0;
-                setTotalParticipants(total);
-
-                // Formata o avg score
-                const rawAvg = data.averageScore;
-                const avgScoreValue = typeof rawAvg === 'number' ? rawAvg : rawAvg?.averageScore ?? 0;
-                setAverageScore(typeof avgScoreValue === "number" ? parseFloat(avgScoreValue.toFixed(1)) : 0);
-
-                if (Array.isArray(data.ageDistribution)) {
-                    const colors = ["#4CAF50", "#FFC107", "#F44336", "#2196F3", "#9C27B0"];
-                    setAgeData(data.ageDistribution.map((item, idx) => ({
-                        label: item.range || "N/A",
-                        value: item.total || 0,
-                        color: colors[idx % colors.length]
-                    })));
-                }
-
-                if (Array.isArray(data.riskDistribution)) {
-                    setRiskData(data.riskDistribution.map(item => {
-                        let color = "#4CAF50";
-                        const label = item.classification || item.risk || "N/A";
-                        if (label.toLowerCase().includes("pré")) color = "#FFC107";
-                        else if (label.toLowerCase().includes("frágil")) color = "#F44336";
-                        return {
-                            label,
-                            value: item.total || item.count || 0,
-                            color
-                        };
-                    }));
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                if (mounted) Alert.alert("Erro", "Não foi possível carregar os dados do dashboard.");
-            })
-            .finally(() => mounted && setLoading(false));
-
-        return () => { mounted = false; };
-    }, []);
+        if (error) {
+            console.error(error);
+            Alert.alert("Erro", "Não foi possível carregar os dados do dashboard.");
+        }
+    }, [error]);
 
     // Calcula dinamicamente o maxValue do gráfico
     const riskMax = Math.max(...riskData.map(d => d.value), 4);
@@ -276,6 +253,13 @@ export const DashboardScreen = () => {
                 style={styles.content}
                 contentContainerStyle={[styles.contentContainer, { paddingBottom: Math.max(insets.bottom + 100, 120) }]}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={["#1F4273"]}
+                    />
+                }
             >
                 {/* Stats Cards */}
                 <View style={styles.statsRow}>
@@ -292,7 +276,7 @@ export const DashboardScreen = () => {
                 {/* Risk Distribution Chart */}
                 <BarChart
                     title="Distribuição de Risco"
-                    subtitle={`(Total na coorte: ${totalParticipants})`}
+                    subtitle={`(Total de participantes: ${totalParticipants})`}
                     data={riskData}
                     maxValue={riskMax}
                     legendItems={riskData.map(d => ({ label: d.label, color: d.color }))}
@@ -301,7 +285,7 @@ export const DashboardScreen = () => {
                 {/* Age Groups Chart */}
                 <BarChart
                     title="Faixas Etárias Predominantes"
-                    subtitle={`(Total: ${totalParticipants})`}
+                    subtitle={`(Total de participantes: ${totalParticipants})`}
                     data={ageData}
                     maxValue={ageMax}
                     legendItems={ageData.map(d => ({ label: d.label, color: d.color }))}

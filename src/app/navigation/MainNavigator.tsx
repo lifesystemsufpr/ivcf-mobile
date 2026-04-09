@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import React from "react";
 import { View, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { useAuthStore } from "../features/auth";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,6 +11,39 @@ import { SearchParticipantNavigator } from "../features/searchParticipant";
 import { CreateParticipantNavigator } from "../features/createParticipant";
 
 const Tab = createBottomTabNavigator();
+
+function decodeBase64(str: string) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let output = '';
+  str = String(str).replace(/=+$/, '');
+  for (let bc = 0, bs: any, buffer: any, idx = 0;
+    (buffer = str.charAt(idx++));
+    ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
+      ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
+      : 0
+  ) {
+    buffer = chars.indexOf(buffer);
+  }
+  return output;
+}
+
+function isTokenExpired(token: string) {
+  try {
+    const payloadUrlBase64 = token.split('.')[1];
+    const base64 = payloadUrlBase64.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      decodeBase64(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    const now = Math.floor(Date.now() / 1000);
+    return payload.exp < now;
+  } catch (e) {
+    return true; // Se não for parseável, consideramos expirado
+  }
+}
 
 // ─── Custom Tab Bar ──────────────────────────────────────────────────
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -115,6 +150,14 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
 // ─── Main Navigator ──────────────────────────────────────────────────
 export function MainNavigator() {
+  const { token, logout } = useAuthStore();
+
+  useEffect(() => {
+    if (token && isTokenExpired(token)) {
+      logout();
+    }
+  }, [token, logout]);
+
   return (
     <Tab.Navigator
       tabBar={(props) => <CustomTabBar {...props} />}

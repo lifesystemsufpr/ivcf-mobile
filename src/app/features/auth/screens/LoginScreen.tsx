@@ -15,6 +15,7 @@ import {
     Alert,
     SafeAreaView,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../hooks/useAuth";
 import { useAuthStore } from "../store/useAuthStore";
 import { mapJwtToUser } from "../mappers/authMapper";
@@ -22,6 +23,7 @@ import { mapJwtToUser } from "../mappers/authMapper";
 export const LoginScreen = () => {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const { login, isLoading } = useAuth();
     const setAuth = useAuthStore((state) => state.setAuth);
@@ -101,14 +103,27 @@ export const LoginScreen = () => {
                             {/* Senha */}
                             <View style={styles.fieldGroup}>
                                 <Text style={styles.label}>Senha</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Digite sua senha"
-                                    placeholderTextColor="#A0A0A0"
-                                    value={senha}
-                                    onChangeText={setSenha}
-                                    secureTextEntry
-                                />
+                                <View style={styles.passwordContainer}>
+                                    <TextInput
+                                        style={styles.passwordInput}
+                                        placeholder="Digite sua senha"
+                                        placeholderTextColor="#A0A0A0"
+                                        value={senha}
+                                        onChangeText={setSenha}
+                                        secureTextEntry={!showPassword}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.eyeIcon}
+                                        onPress={() => setShowPassword(!showPassword)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Ionicons
+                                            name={showPassword ? "eye" : "eye-off"}
+                                            size={22}
+                                            color="#A0A0A0"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
 
                             {/* Esqueceu senha */}
@@ -206,6 +221,24 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: "#333333",
         backgroundColor: "#FFFFFF",
+    },
+    passwordContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#D0D0D0",
+        borderRadius: 8,
+        backgroundColor: "#FFFFFF",
+    },
+    passwordInput: {
+        flex: 1,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        fontSize: 15,
+        color: "#333333",
+    },
+    eyeIcon: {
+        paddingHorizontal: 14,
     },
     forgotPassword: {
         alignSelf: "flex-end",

@@ -117,6 +117,18 @@ export const CreateParticipantScreen = () => {
             return;
         }
 
+        const today = new Date();
+        let age = today.getFullYear() - dateObj.getFullYear();
+        const m = today.getMonth() - dateObj.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dateObj.getDate())) {
+            age--;
+        }
+
+        if (age < 60) {
+            Alert.alert("Atenção", "O participante deve ter 60 anos ou mais.");
+            return;
+        }
+
         setIsLoading(true);
         try {
             await createParticipantApi.checkEmail(email);
