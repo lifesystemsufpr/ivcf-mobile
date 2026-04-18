@@ -59,12 +59,12 @@ export const CreateUserScreen = () => {
             navigation.goBack();
 
         } catch (error: Error | any) {
-            console.error(error);
+           
 
-            if (error.response.status === 409 )
-
+            if (error.response.status === 400 )
                 Alert.alert("Erro", "E-mail já cadastrado. Tente outro e-mail.");
-            Alert.alert("Erro", "Não foi possível realizar o cadastro.");
+            
+            else Alert.alert("Erro", "Ocorreu um erro no servidor. Tente novamente mais tarde.");       
         }
     };
 
