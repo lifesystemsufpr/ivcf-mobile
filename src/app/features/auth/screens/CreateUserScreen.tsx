@@ -25,29 +25,16 @@ export const CreateUserScreen = () => {
 
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
-    const [celular, setCelular] = useState("");
     const [senha, setSenha] = useState("");
+    const [speciality, setSpeciality] = useState("");
     const [confirmSenha, setConfirmSenha] = useState("");
     const [termsAccepted, setTermsAccepted] = useState(false);
 
     const createHealthProfessional = useCreateHealthProfessional();
 
-    const formatCelular = (text: string) => {
-        const digits = text.replace(/\D/g, "").slice(0, 11);
-        let formatted = digits;
-        if (digits.length > 0) formatted = "(" + digits;
-        if (digits.length > 2) formatted = "(" + digits.slice(0, 2) + ") " + digits.slice(2);
-        if (digits.length > 7) formatted = "(" + digits.slice(0, 2) + ") " + digits.slice(2, 7) + "-" + digits.slice(7);
-
-        return formatted;
-    };
-
-    const handleCelularChange = (text: string) => {
-        setCelular(formatCelular(text));
-    };
-
+ 
     const handleCadastrar = async () => {
-        if (!nome || !email || !celular || !senha || !confirmSenha || !termsAccepted) {
+        if (!nome || !email || !senha || !confirmSenha || !termsAccepted) {
             Alert.alert("Atenção", "Por favor, preencha todos os campos e aceite os termos.");
             return;
         }
@@ -57,26 +44,26 @@ export const CreateUserScreen = () => {
             return;
         }
 
-        const rawPhone = celular.replace(/\D/g, "");
-        const genderEnum = "FEMALE"; // Mockado
-        const mockedSpeciality = "Cardiologista"; // Mockado
-
         try {
             await createHealthProfessional.mutateAsync({
-                speciality: mockedSpeciality,
+                speciality: speciality,
                 user: {
                     fullName: nome,
                     email,
-                    phone: rawPhone,
-                    gender: genderEnum,
                     password: senha,
                     active: true,
                 }
             });
+
             Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
             navigation.goBack();
-        } catch (error) {
+
+        } catch (error: Error | any) {
             console.error(error);
+
+            if (error.response.status === 409 )
+
+                Alert.alert("Erro", "E-mail já cadastrado. Tente outro e-mail.");
             Alert.alert("Erro", "Não foi possível realizar o cadastro.");
         }
     };
@@ -109,17 +96,7 @@ export const CreateUserScreen = () => {
                     {/* Campos */}
                     <View style={styles.fieldsContainer}>
 
-                        {/* Nome */}
-                        <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Nome</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={nome}
-                                onChangeText={setNome}
-                                placeholder="Nome completo"
-                                placeholderTextColor="#B0BEC5"
-                            />
-                        </View>
+
 
                         {/* Email */}
                         <View style={styles.fieldGroup}>
@@ -135,15 +112,29 @@ export const CreateUserScreen = () => {
                             />
                         </View>
 
-                        {/* Celular */}
+
+                        {/* Nome */}
                         <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Celular</Text>
+                            <Text style={styles.label}>Nome</Text>
                             <TextInput
                                 style={styles.input}
-                                value={celular}
-                                onChangeText={handleCelularChange}
-                                keyboardType="numeric"
-                                placeholder="(00) 00000-0000"
+                                value={nome}
+                                onChangeText={setNome}
+                                placeholder="Nome completo"
+                                placeholderTextColor="#B0BEC5"
+                            />
+                        </View>
+
+                        
+
+                        {/* Especialidade */}
+                        <View style={styles.fieldGroup}>
+                            <Text style={styles.label}>Especialidade</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={speciality}
+                                onChangeText={setSpeciality}
+                                placeholder="Especialidade"
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>

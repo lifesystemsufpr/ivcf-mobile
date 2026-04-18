@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, StatusBar, TouchableOpacity, DimensionValue } f
 import { LinearGradient } from "expo-linear-gradient";
 import { CommonActions } from "@react-navigation/native";
 import { Alert, ActivityIndicator } from "react-native";
-import axios from "axios";
+import { isAxiosError } from "axios"
 import { useQuestionnaire } from "../hooks/useQuestionnaire";
 import { QuestionnaireResponseDTO } from "../dto/QuestionnaireResponseDTO";
 import { questionnaireResponseService } from "../services/QuestionnaireResponseService";
@@ -108,12 +108,13 @@ export const ResultScreen: React.FC<Props> = ({ navigation, route }) => {
             console.log("Questionnaire response status:", resp?.status);
             console.log("Questionnaire response data:", resp?.data);
             navigation.dispatch(CommonActions.navigate({ name: "Success" }));
+            
         } catch (err: any) {
             console.error("Failed to submit questionnaire response", err);
 
             let message = "Não foi possível enviar as respostas. Tente novamente.";
 
-            if (axios.isAxiosError(err) && err.response) {
+            if (isAxiosError(err) && err.response) {
                 const respData = err.response.data;
 
                 if (respData) {
@@ -122,6 +123,7 @@ export const ResultScreen: React.FC<Props> = ({ navigation, route }) => {
                     } else if (respData.message) {
                         message = respData.message;
                     } else {
+
                         try {
                             message = JSON.stringify(respData);
 
@@ -133,6 +135,7 @@ export const ResultScreen: React.FC<Props> = ({ navigation, route }) => {
             } 
 
             Alert.alert("Erro", message);
+
         } finally {
             setIsSubmitting(false);
         }
