@@ -1,8 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { healthProfessionalApi } from "../api/healthProfessionalApi";
+import { createHealthProfessionalService } from "../services/CreateHealthProfessionalService";
 
 export const useCreateHealthProfessional = () => {
-    return useMutation({
-        mutationFn: healthProfessionalApi.create
-    });
+    const mutation = useMutation({ mutationFn: createHealthProfessionalService });
+
+    return {
+        create: mutation.mutate,
+        isLoading: mutation.isPending,
+        error: mutation.error,
+        data: mutation.data
+    }
 };

@@ -1,15 +1,11 @@
-
 import { useMutation } from "@tanstack/react-query"
-import { authApi } from "../api/authApi"
-
-
+import { authService } from "../services/AuthService"
 
 export const useAuth = () => {
 
-    const mutation = useMutation({ mutationFn: authApi.login })
+    const mutation = useMutation({ mutationFn: authService })
 
     return {
-
         login: mutation.mutate,
         isLoading: mutation.isPending,
         error: mutation.error,

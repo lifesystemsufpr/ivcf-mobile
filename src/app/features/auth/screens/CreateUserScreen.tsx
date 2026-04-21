@@ -44,28 +44,27 @@ export const CreateUserScreen = () => {
             return;
         }
 
-        try {
-            await createHealthProfessional.mutateAsync({
-                speciality: speciality,
-                user: {
-                    fullName: nome,
-                    email,
-                    password: senha,
-                    active: true,
+        createHealthProfessional.create (
+            { user:{ fullName: nome, email, password: senha, active: true }, speciality },
+            {
+                onSuccess: () => {
+                    Alert.alert("Sucesso", "Profissional de saúde criado com sucesso!", [{
+                        text: "OK",
+                        onPress: () => navigation.goBack()
+                    }]);
+                },
+
+                onError: (error: any) => {
+                    console.log("Erro ao criar profissional de saúde:", error);
+
+                    if (error.response?.status === 400) {
+                        Alert.alert("Erro", "Dados inválidos ou usuário já cadastrado.");
+                    } else {
+                        Alert.alert("Erro", "Ocorreu um erro ao criar o profissional de saúde. Tente novamente.");
+                    }
                 }
-            });
-
-            Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
-            navigation.goBack();
-
-        } catch (error: Error | any) {
-           
-
-            if (error.response.status === 400 )
-                Alert.alert("Erro", "E-mail já cadastrado. Tente outro e-mail.");
-            
-            else Alert.alert("Erro", "Ocorreu um erro no servidor. Tente novamente mais tarde.");       
-        }
+            }
+        );
     };
 
     return (

@@ -3,7 +3,6 @@ export interface CreateHealthProfessionalPayloadDTO {
     user: {
         fullName: string;
         email: string;
-        gender: "FEMALE" | "MALE";
         password?: string;
         active: boolean;
     };

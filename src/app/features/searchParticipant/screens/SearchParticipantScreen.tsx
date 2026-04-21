@@ -23,6 +23,7 @@ import { ParticipantDTO } from "../dto/ParticipantDTO";
 export const SearchParticipantScreen = ({ route }: any) => {
     const [searchName, setSearchName] = useState("");
     const [menuVisible, setMenuVisible] = useState(false);
+    const [title, setTitle] = useState("Buscar participante");
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const navigation = useNavigation<any>();
@@ -136,13 +137,13 @@ export const SearchParticipantScreen = ({ route }: any) => {
 
             {/* Content */}
             <View style={styles.content}>
-                <Text style={styles.title}>Buscar participante</Text>
+                <Text style={styles.title}>{fromMenu ? "Pesquisar participante" : "Buscar participante"}</Text>
 
                 {/* Search Input */}
                 <View style={styles.searchContainer}>
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Buscar por nome..."
+                        placeholder={fromMenu ? "Pesquisar por nome..." : "Buscar por nome..."}
                         placeholderTextColor="#A0A0A0"
                         value={searchName}
                         onChangeText={setSearchName}

@@ -17,8 +17,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../hooks/useAuth";
-import { useAuthStore } from "../store/useAuthStore";
-import { mapJwtToUser } from "../mappers/authMapper";
 
 export const LoginScreen = () => {
     const [email, setEmail] = useState("");
@@ -26,7 +24,6 @@ export const LoginScreen = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const { login, isLoading } = useAuth();
-    const setAuth = useAuthStore((state) => state.setAuth);
 
     const handleLogin = () => {
         if (!email || !senha) {
@@ -34,18 +31,14 @@ export const LoginScreen = () => {
             return;
         }
 
-        console.log("handleLogin chamado", { email, senha });
 
         login(
             { email, password: senha },
+
             {
-                onSuccess: (response) => {
-                    const token = response.data.access_token;
-                    const user = mapJwtToUser(token);
-                    console.log("Login sucesso:", { token, user });
-                    setAuth(token, user);
+                onSuccess: () => {
                 },
-                onError: (error) => {
+                onError: (error: any) => {
                     console.log("Login erro:", error);
                     Alert.alert("Erro", "E-mail ou senha inválidos. Tente novamente.");
                 },
@@ -74,7 +67,7 @@ export const LoginScreen = () => {
             {/* Card de Login */}
             <KeyboardAvoidingView
                 style={styles.cardWrapper}
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                behavior={"padding"}
             >
                 <ScrollView
                     contentContainerStyle={styles.scrollContent}
