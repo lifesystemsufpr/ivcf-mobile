@@ -3,6 +3,8 @@ import { LoginScreen } from "../screens/LoginScreen"
 import { SplashScreen } from "../screens/SplashScreen"
 import { CreateUserScreen } from "../screens/CreateUserScreen"
 import { AuthStackParamList } from "../types/AuthStackParamList"
+import { RecoveryPasswordScreen } from "../screens/RecoveryPassword"
+import { RecoveryConfirmationScreen } from "../screens/RecoveryConfirmation"
 
 
 const Stack = createNativeStackNavigator<AuthStackParamList>()
@@ -15,6 +17,8 @@ export const AuthNavigator = () => {
         <Stack.Screen name="SplashScreen" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="CreateUser" component={CreateUserScreen} />
+        <Stack.Screen name="RecoveryPassword" component={RecoveryPasswordScreen} />
+        <Stack.Screen name="RecoveryConfirmation" component={RecoveryConfirmationScreen} />
         
       </Stack.Navigator>
         

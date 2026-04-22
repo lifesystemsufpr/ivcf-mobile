@@ -7,16 +7,21 @@ import {
     StyleSheet,
     StatusBar,
     Image,
-    Dimensions,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
     ActivityIndicator,
     Alert,
     SafeAreaView,
+    Keyboard,
+    TouchableWithoutFeedback,
+    useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../hooks/useAuth";
+
+import { useNavigation } from "@react-navigation/native";
+
 
 export const LoginScreen = () => {
     const [email, setEmail] = useState("");
@@ -24,6 +29,10 @@ export const LoginScreen = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const { login, isLoading } = useAuth();
+    const navigation = useNavigation<any>();
+    const { width, height } = useWindowDimensions();
+
+    const isSmallScreen = height < 680;
 
     const handleLogin = () => {
         if (!email || !senha) {
@@ -47,107 +56,124 @@ export const LoginScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={styles.container}>
+                <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
 
-            {/* Header com logo */}
-            <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
-                <View style={styles.header}>
-                    <Image
-                        source={require("../../../../../assets/logo.png")}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
-                    <Text style={styles.headerSubtitle}>
-                        Avaliação Clínica e Funcional Simplificada
-                    </Text>
-                </View>
-            </SafeAreaView>
+                {/* Header com logo */}
+                <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
+                    <View style={[styles.header, isSmallScreen && styles.headerSmall]}>
+                        <Image
+                            source={require("../../../../../assets/logo.png")}
+                            style={[
+                                styles.logo,
+                                {
+                                    width: width * 0.45,
+                                    height: width * (isSmallScreen ? 0.20 : 0.28),
+                                },
+                            ]}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.headerSubtitle}>
+                            Avaliação Clínica e Funcional Simplificada
+                        </Text>
+                    </View>
+                </SafeAreaView>
 
-            {/* Card de Login */}
-            <KeyboardAvoidingView
-                style={styles.cardWrapper}
-                behavior={"padding"}
-            >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    keyboardShouldPersistTaps="handled"
-                    bounces={false}
+                {/* Card de Login */}
+                <KeyboardAvoidingView
+                    style={styles.cardWrapper}
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
                 >
-                    <View style={styles.card}>
-                        {/* Seção dos campos */}
-                        <View>
-                            <Text style={styles.loginTitle}>Login</Text>
-
-                            {/* Email */}
-                            <View style={styles.fieldGroup}>
-                                <Text style={styles.label}>E-mail</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="seu@email.com"
-                                    placeholderTextColor="#A0A0A0"
-                                    value={email}
-                                    onChangeText={setEmail}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                />
-                            </View>
-
-                            {/* Senha */}
-                            <View style={styles.fieldGroup}>
-                                <Text style={styles.label}>Senha</Text>
-                                <View style={styles.passwordContainer}>
-                                    <TextInput
-                                        style={styles.passwordInput}
-                                        placeholder="Digite sua senha"
-                                        placeholderTextColor="#A0A0A0"
-                                        value={senha}
-                                        onChangeText={setSenha}
-                                        secureTextEntry={!showPassword}
-                                    />
-                                    <TouchableOpacity
-                                        style={styles.eyeIcon}
-                                        onPress={() => setShowPassword(!showPassword)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Ionicons
-                                            name={showPassword ? "eye" : "eye-off"}
-                                            size={22}
-                                            color="#A0A0A0"
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-
-                            {/* Esqueceu senha */}
-                            <TouchableOpacity style={styles.forgotPassword}>
-                                <Text style={styles.forgotPasswordText}>
-                                    Esqueceu sua senha?
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        keyboardShouldPersistTaps="handled"
+                        bounces={false}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={[styles.card, isSmallScreen && styles.cardSmall]}>
+                            {/* Seção dos campos */}
+                            <View>
+                                <Text style={[styles.loginTitle, isSmallScreen && styles.loginTitleSmall]}>
+                                    Login
                                 </Text>
+
+                                {/* Email */}
+                                <View style={styles.fieldGroup}>
+                                    <Text style={styles.label}>E-mail</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="seu@email.com"
+                                        placeholderTextColor="#A0A0A0"
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                        returnKeyType="next"
+                                    />
+                                </View>
+
+                                {/* Senha */}
+                                <View style={styles.fieldGroup}>
+                                    <Text style={styles.label}>Senha</Text>
+                                    <View style={styles.passwordContainer}>
+                                        <TextInput
+                                            style={styles.passwordInput}
+                                            placeholder="Digite sua senha"
+                                            placeholderTextColor="#A0A0A0"
+                                            value={senha}
+                                            onChangeText={setSenha}
+                                            secureTextEntry={!showPassword}
+                                            returnKeyType="done"
+                                            onSubmitEditing={handleLogin}
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.eyeIcon}
+                                            onPress={() => setShowPassword(!showPassword)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Ionicons
+                                                name={showPassword ? "eye" : "eye-off"}
+                                                size={22}
+                                                color="#A0A0A0"
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                {/* Esqueceu senha */}
+                                <TouchableOpacity style={styles.forgotPassword}>
+                                    <Text style={styles.forgotPasswordText} onPress={() => navigation.navigate("RecoveryPassword")}>
+                                        Esqueceu sua senha?
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Botão Entrar */}
+                            <TouchableOpacity
+                                style={[
+                                    styles.button,
+                                    { width: Math.min(width * 0.50, 280) },
+                                    isLoading && styles.buttonDisabled,
+                                ]}
+                                activeOpacity={0.8}
+                                onPress={handleLogin}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.buttonText}>Entrar</Text>
+                                )}
                             </TouchableOpacity>
                         </View>
-
-                        {/* Botão Entrar */}
-                        <TouchableOpacity
-                            style={[styles.button, isLoading && styles.buttonDisabled]}
-                            activeOpacity={0.8}
-                            onPress={handleLogin}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color="#FFFFFF" />
-                            ) : (
-                                <Text style={styles.buttonText}>Entrar</Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </View>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </View>
+        </TouchableWithoutFeedback>
     );
 };
-
-const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
     container: {
@@ -161,9 +187,11 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 16 : 16,
         paddingBottom: 30,
     },
+    headerSmall: {
+        paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 24) + 8 : 8,
+        paddingBottom: 16,
+    },
     logo: {
-        width: width * 0.45,
-        height: width * 0.28,
         marginBottom: 8,
     },
     headerSubtitle: {
@@ -190,11 +218,19 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
         justifyContent: "center",
     },
+    cardSmall: {
+        paddingTop: 24,
+        paddingBottom: 24,
+    },
     loginTitle: {
         fontSize: 28,
         fontWeight: "bold",
         color: "#1F4273",
         marginBottom: 30,
+    },
+    loginTitleSmall: {
+        fontSize: 24,
+        marginBottom: 20,
     },
     fieldGroup: {
         marginBottom: 16,
@@ -247,7 +283,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#72AB24",
         paddingVertical: 14,
         borderRadius: 25,
-        width: width * 0.50,
         alignSelf: "center",
         alignItems: "center",
         elevation: 3,

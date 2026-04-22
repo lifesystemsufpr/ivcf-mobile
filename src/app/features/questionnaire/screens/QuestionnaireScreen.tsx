@@ -133,8 +133,8 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                 const currentArray = Array.isArray(currentValue)
                     ? currentValue
                     : currentValue
-                    ? [currentValue]
-                    : [];
+                        ? [currentValue]
+                        : [];
 
                 const isSelected = currentArray.includes(optionId);
 
@@ -198,18 +198,18 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
             <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>IVCF-20</Text>
-                <View style={styles.progressContainer}>
-                    <View style={styles.progressBackground} />
-                    <View
-                        style={[
-                            styles.progressBar,
-                            { width: `${progress * 100}%` },
-                        ]}
-                    />
-                </View>
-                <Text style={styles.headerSubtitle}>
-                    QUESTÃO {currentIndex + 1} de {TOTAL_QUESTIONS}
-                </Text>
+                    <View style={styles.progressContainer}>
+                        <View style={styles.progressBackground} />
+                        <View
+                            style={[
+                                styles.progressBar,
+                                { width: `${progress * 100}%` },
+                            ]}
+                        />
+                    </View>
+                    <Text style={styles.headerSubtitle}>
+                        QUESTÃO {currentIndex + 1} de {TOTAL_QUESTIONS}
+                    </Text>
                 </View>
             </SafeAreaView>
 
@@ -282,11 +282,19 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.navButton, styles.navButtonPrimary]}
+                        style={[
+                            styles.navButton,
+                            styles.navButtonPrimary,
+                            !answers[currentQuestion.id] && styles.navButtonPrimaryDisabled,
+                        ]}
                         activeOpacity={0.8}
                         onPress={handleNext}
+                        disabled={!answers[currentQuestion.id]}
                     >
-                        <Text style={styles.navButtonTextPrimary}>
+                        <Text style={[
+                            styles.navButtonTextPrimary,
+                            !answers[currentQuestion.id] && styles.navButtonTextPrimaryDisabled,
+                        ]}>
                             {currentIndex === TOTAL_QUESTIONS - 1
                                 ? "Concluir"
                                 : "Próximo"}
@@ -444,6 +452,9 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         backgroundColor: "#72AB24",
     },
+    navButtonPrimaryDisabled: {
+        backgroundColor: "#C5CED8",
+    },
     navButtonDisabled: {
         borderColor: "#C5CED8",
     },
@@ -456,6 +467,10 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 14,
         fontWeight: "600",
+    },
+    navButtonTextPrimaryDisabled: {
+        color: "#FFFFFF",
+        opacity: 0.7,
     },
     navButtonTextDisabled: {
         color: "#C5CED8",

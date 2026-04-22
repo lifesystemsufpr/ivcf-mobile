@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
     View,
     Text,
@@ -12,6 +12,7 @@ import {
     Pressable,
     SafeAreaView,
     Platform,
+    RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -23,11 +24,33 @@ import { ParticipantDTO } from "../dto/ParticipantDTO";
 export const SearchParticipantScreen = ({ route }: any) => {
     const [searchName, setSearchName] = useState("");
     const [menuVisible, setMenuVisible] = useState(false);
-    const [title, setTitle] = useState("Buscar participante");
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const navigation = useNavigation<any>();
-    const { participants, isLoading } = useSearchParticipant();
+    const {
+        participants,
+        isLoading,
+        refetch,
+        isRefetching,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useSearchParticipant();
+
+    const handleLoadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    const renderFooter = () => {
+        if (!isFetchingNextPage) return null;
+        return (
+            <View style={{ paddingVertical: 20 }}>
+                <ActivityIndicator size="small" color="#1F4273" />
+            </View>
+        );
+    };
 
     const fromMenu = route?.params?.fromMenu === true;
 
@@ -76,21 +99,21 @@ export const SearchParticipantScreen = ({ route }: any) => {
             {/* Header */}
             <SafeAreaView style={{ backgroundColor: "#1F4273", zIndex: 10 }}>
                 <View style={styles.header}>
-                <View style={styles.headerLeft}>
-                    <View style={styles.avatar}>
-                        <Ionicons name="person-outline" size={28} color="#1F4273" />
+                    <View style={styles.headerLeft}>
+                        <View style={styles.avatar}>
+                            <Ionicons name="person-outline" size={28} color="#1F4273" />
+                        </View>
+                        <View style={styles.headerTextContainer}>
+                            <Text style={styles.headerRole}>Responsável</Text>
+                            <Text style={styles.headerName}>{user?.name ?? "Usuário"}</Text>
+                        </View>
                     </View>
-                    <View style={styles.headerTextContainer}>
-                        <Text style={styles.headerRole}>Responsável</Text>
-                        <Text style={styles.headerName}>{user?.name ?? "Usuário"}</Text>
-                    </View>
-                </View>
-                <TouchableOpacity
-                    style={styles.menuButton}
-                    onPress={() => setMenuVisible(true)}
-                >
-                    <Ionicons name="menu" size={28} color="#FFFFFF" />
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.menuButton}
+                        onPress={() => setMenuVisible(true)}
+                    >
+                        <Ionicons name="menu" size={28} color="#FFFFFF" />
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
 
@@ -170,6 +193,17 @@ export const SearchParticipantScreen = ({ route }: any) => {
                         contentContainerStyle={styles.listContent}
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isRefetching}
+                                onRefresh={refetch}
+                                colors={["#1F4273"]}
+                                tintColor="#1F4273"
+                            />
+                        }
+                        onEndReached={searchName.trim() ? undefined : handleLoadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={!searchName.trim() ? renderFooter : undefined}
                         ListEmptyComponent={
                             <Text style={styles.emptyText}>
                                 {searchName
