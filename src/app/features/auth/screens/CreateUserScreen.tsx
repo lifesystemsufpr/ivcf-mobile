@@ -12,6 +12,7 @@ import {
     Platform,
     ScrollView,
     Alert,
+    Modal,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -29,10 +30,11 @@ export const CreateUserScreen = () => {
     const [speciality, setSpeciality] = useState("");
     const [confirmSenha, setConfirmSenha] = useState("");
     const [termsAccepted, setTermsAccepted] = useState(false);
+    const [termsModalVisible, setTermsModalVisible] = useState(false);
 
     const createHealthProfessional = useCreateHealthProfessional();
 
- 
+
     const handleCadastrar = async () => {
         if (!nome || !email || !senha || !confirmSenha || !termsAccepted) {
             Alert.alert("Atenção", "Por favor, preencha todos os campos e aceite os termos.");
@@ -44,8 +46,8 @@ export const CreateUserScreen = () => {
             return;
         }
 
-        createHealthProfessional.create (
-            { user:{ fullName: nome, email, password: senha, active: true }, speciality },
+        createHealthProfessional.create(
+            { user: { fullName: nome, email, password: senha, active: true }, speciality },
             {
                 onSuccess: () => {
                     Alert.alert("Sucesso", "Profissional de saúde criado com sucesso!", [{
@@ -58,7 +60,7 @@ export const CreateUserScreen = () => {
                     console.log("Erro ao criar profissional de saúde:", error);
 
                     if (error.response?.status === 400) {
-                        Alert.alert("Erro", "Dados inválidos ou usuário já cadastrado.");
+                        Alert.alert("Erro", "Usuário já cadastrado.");
                     } else {
                         Alert.alert("Erro", "Ocorreu um erro ao criar o profissional de saúde. Tente novamente.");
                     }
@@ -124,7 +126,7 @@ export const CreateUserScreen = () => {
                             />
                         </View>
 
-                        
+
 
                         {/* Especialidade */}
                         <View style={styles.fieldGroup}>
@@ -171,10 +173,11 @@ export const CreateUserScreen = () => {
                     <TouchableOpacity
                         style={styles.termsRow}
                         activeOpacity={0.7}
-                        onPress={() => setTermsAccepted(!termsAccepted)}
+                        onPress={() => setTermsModalVisible(true)}
                     >
                         <Text style={styles.termsText}>
-                            Li e concordo com os termos de uso
+                            Li e concordo com os{" "}
+                            <Text style={styles.termsLink}>termos de uso</Text>
                         </Text>
                         <View style={[
                             styles.checkbox,
@@ -185,6 +188,59 @@ export const CreateUserScreen = () => {
                             )}
                         </View>
                     </TouchableOpacity>
+
+                    {/* Modal de Termos de Uso */}
+                    <Modal
+                        visible={termsModalVisible}
+                        transparent
+                        animationType="fade"
+                        onRequestClose={() => setTermsModalVisible(false)}
+                    >
+                        <View style={styles.termsModalBackdrop}>
+                            <View style={styles.termsModalCard}>
+                                <Text style={styles.termsModalTitle}>Termos de Uso</Text>
+
+                                <ScrollView
+                                    style={styles.termsModalScroll}
+                                    showsVerticalScrollIndicator={true}
+                                >
+                                    <Text style={styles.termsModalBody}>
+                                        Ao utilizar este aplicativo, você concorda com os seguintes termos:{"\n\n"}
+                                        1. <Text style={{ fontWeight: "bold" }}>Coleta de Dados:</Text> O aplicativo coleta dados pessoais e de saúde dos participantes exclusivamente para fins de avaliação clínica e funcional.{"\n\n"}
+                                        2. <Text style={{ fontWeight: "bold" }}>Privacidade:</Text> Todos os dados coletados são tratados com confidencialidade e em conformidade com a Lei Geral de Proteção de Dados (LGPD).{"\n\n"}
+                                        3. <Text style={{ fontWeight: "bold" }}>Uso Profissional:</Text> Este aplicativo é destinado ao uso exclusivo de profissionais de saúde devidamente habilitados.{"\n\n"}
+                                        4. <Text style={{ fontWeight: "bold" }}>Responsabilidade:</Text> O profissional é responsável pela veracidade das informações inseridas e pela correta aplicação dos instrumentos de avaliação.{"\n\n"}
+                                        5. <Text style={{ fontWeight: "bold" }}>Armazenamento:</Text> Os dados são armazenados de forma segura em servidores protegidos e podem ser excluídos mediante solicitação.{"\n\n"}
+                                        Ao aceitar estes termos, você declara estar ciente e de acordo com todas as condições acima descritas.
+                                    </Text>
+                                </ScrollView>
+
+                                <View style={styles.termsModalButtons}>
+                                    <TouchableOpacity
+                                        style={styles.termsModalDeclineButton}
+                                        activeOpacity={0.8}
+                                        onPress={() => {
+                                            setTermsAccepted(false);
+                                            setTermsModalVisible(false);
+                                        }}
+                                    >
+                                        <Text style={styles.termsModalDeclineText}>Recusar</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.termsModalAcceptButton}
+                                        activeOpacity={0.8}
+                                        onPress={() => {
+                                            setTermsAccepted(true);
+                                            setTermsModalVisible(false);
+                                        }}
+                                    >
+                                        <Text style={styles.termsModalAcceptText}>Aceitar</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
 
                     {/* Botão Cadastrar */}
                     <View style={styles.buttonContainer}>
@@ -335,6 +391,11 @@ const styles = StyleSheet.create({
         fontWeight: "500",
         flex: 1,
     },
+    termsLink: {
+        color: "#72AB24",
+        fontWeight: "bold",
+        textDecorationLine: "underline" as const,
+    },
     checkbox: {
         width: 22,
         height: 22,
@@ -374,6 +435,66 @@ const styles = StyleSheet.create({
     buttonText: {
         color: "#FFFFFF",
         fontSize: 16,
+        fontWeight: "bold",
+    },
+    termsModalBackdrop: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "center",
+        paddingHorizontal: 24,
+    },
+    termsModalCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        paddingTop: 24,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+        maxHeight: "75%",
+    },
+    termsModalTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#1F4273",
+        textAlign: "center",
+        marginBottom: 16,
+    },
+    termsModalScroll: {
+        marginBottom: 20,
+    },
+    termsModalBody: {
+        fontSize: 14,
+        color: "#4A5568",
+        lineHeight: 22,
+    },
+    termsModalButtons: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        gap: 12,
+    },
+    termsModalDeclineButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 25,
+        borderWidth: 1,
+        borderColor: "#C5CED8",
+        alignItems: "center",
+    },
+    termsModalDeclineText: {
+        color: "#6B7B8D",
+        fontSize: 14,
+        fontWeight: "600",
+    },
+    termsModalAcceptButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 25,
+        backgroundColor: "#72AB24",
+        alignItems: "center",
+        elevation: 2,
+    },
+    termsModalAcceptText: {
+        color: "#FFFFFF",
+        fontSize: 14,
         fontWeight: "bold",
     },
 });
