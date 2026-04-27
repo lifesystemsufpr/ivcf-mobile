@@ -50,14 +50,14 @@ export const CreateUserScreen = () => {
             { user: { fullName: nome, email, password: senha, active: true }, speciality },
             {
                 onSuccess: () => {
-                    Alert.alert("Sucesso", "Profissional de saúde criado com sucesso!", [{
+                    Alert.alert("Sucesso", "Responsável criado com sucesso!", [{
                         text: "OK",
                         onPress: () => navigation.goBack()
                     }]);
                 },
 
                 onError: (error: any) => {
-                    console.log("Erro ao criar profissional de saúde:", error);
+                    console.log("Erro ao criar responsável:", error);
 
                     if (error.response?.status === 400) {
                         Alert.alert("Erro", "Usuário já cadastrado.");
@@ -99,13 +99,29 @@ export const CreateUserScreen = () => {
 
 
 
+
+
+  {/* Nome */}
+                        <View style={styles.fieldGroup}>
+                            <Text style={styles.label}>Nome Completo</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={nome}
+                                onChangeText={(text) => setNome(text.trim())}
+                                placeholder="Seu nome completo"
+                                placeholderTextColor="#B0BEC5"
+                            />
+                        </View>
+
+
+
                         {/* Email */}
                         <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Email</Text>
+                            <Text style={styles.label}>E-mail Profissional/Pessoal</Text>
                             <TextInput
                                 style={styles.input}
                                 value={email}
-                                onChangeText={setEmail}
+                                onChangeText={(text) => setEmail(text.trim())}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 placeholder="email@exemplo.com"
@@ -114,28 +130,17 @@ export const CreateUserScreen = () => {
                         </View>
 
 
-                        {/* Nome */}
-                        <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Nome</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={nome}
-                                onChangeText={setNome}
-                                placeholder="Nome completo"
-                                placeholderTextColor="#B0BEC5"
-                            />
-                        </View>
-
+                      
 
 
                         {/* Especialidade */}
                         <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Especialidade</Text>
+                            <Text style={styles.label}>Ocupação / Vínculo</Text>
                             <TextInput
                                 style={styles.input}
                                 value={speciality}
-                                onChangeText={setSpeciality}
-                                placeholder="Especialidade"
+                                onChangeText={(text) => setSpeciality(text.trim())}
+                                placeholder="Ex: Médico, Filho(a), Cuidador, etc."
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>
@@ -144,13 +149,15 @@ export const CreateUserScreen = () => {
 
                         {/* Senha */}
                         <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Senha</Text>
+                            <Text style={styles.label}>Senha de Acesso</Text>
                             <TextInput
                                 style={styles.input}
                                 value={senha}
-                                onChangeText={setSenha}
+                                onChangeText={(text) => setSenha(text)}
                                 secureTextEntry
-                                placeholder="Digite sua senha"
+
+                                placeholder="Minimo 6 caracteres
+                                "
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>
@@ -161,7 +168,7 @@ export const CreateUserScreen = () => {
                             <TextInput
                                 style={styles.input}
                                 value={confirmSenha}
-                                onChangeText={setConfirmSenha}
+                                onChangeText={(text) => setConfirmSenha(text)}
                                 secureTextEntry
                                 placeholder="Confirme sua senha"
                                 placeholderTextColor="#B0BEC5"
@@ -177,7 +184,7 @@ export const CreateUserScreen = () => {
                     >
                         <Text style={styles.termsText}>
                             Li e concordo com os{" "}
-                            <Text style={styles.termsLink}>termos de uso</Text>
+                            <Text style={styles.termsLink}>Termos de Uso e a Política de Privacidade</Text>
                         </Text>
                         <View style={[
                             styles.checkbox,
@@ -249,7 +256,7 @@ export const CreateUserScreen = () => {
                             activeOpacity={0.8}
                             onPress={handleCadastrar}
                         >
-                            <Text style={styles.buttonText}>Cadastrar</Text>
+                            <Text style={styles.buttonText}>Finalizar Cadastro</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>

@@ -28,7 +28,6 @@ export const CreateParticipantScreen = () => {
 
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
     const [dataNasc, setDataNasc] = useState("");
     const [sexo, setSexo] = useState("");
     const [sexoModalOpen, setSexoModalOpen] = useState(false);
@@ -43,20 +42,6 @@ export const CreateParticipantScreen = () => {
         setEmail(text.trim().toLowerCase());
     };
 
-    const handlePhoneChange = (text: string) => {
-        let raw = text.replace(/\D/g, "");
-        if (raw.length > 11) raw = raw.slice(0, 11);
-        let formatted = raw;
-        if (raw.length > 2) {
-            formatted = `(${raw.slice(0, 2)}) ${raw.slice(2)}`;
-        }
-        if (raw.length > 6 && raw.length < 11) {
-            formatted = `(${raw.slice(0, 2)}) ${raw.slice(2, 6)}-${raw.slice(6)}`;
-        } else if (raw.length === 11) {
-            formatted = `(${raw.slice(0, 2)}) ${raw.slice(2, 7)}-${raw.slice(7)}`;
-        }
-        setPhone(formatted);
-    };
 
     const handleDateChange = (text: string) => {
         let raw = text.replace(/\D/g, "");
@@ -78,7 +63,7 @@ export const CreateParticipantScreen = () => {
     };
 
     const handleContinuar = async () => {
-        if (!nome || !email || !phone || !dataNasc || !sexo || !altura || !peso) {
+        if (!nome || !email  || !dataNasc || !sexo || !altura || !peso) {
             Alert.alert("Atenção", "Por favor, preencha todos os campos.");
             return;
         }
@@ -138,7 +123,6 @@ export const CreateParticipantScreen = () => {
                 navigation.navigate("CreateParticipantAddress", {
                     nome,
                     email,
-                    phone,
                     dataNasc,
                     sexo,
                     altura,
@@ -204,20 +188,7 @@ export const CreateParticipantScreen = () => {
                             />
                         </View>
 
-                        <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Telefone</Text>
-                            <TextInput
-                                style={[styles.input, { borderBottomColor: getBorderColor("phone") }]}
-                                value={phone}
-                                onChangeText={handlePhoneChange}
-                                onFocus={() => setFocusedField("phone")}
-                                onBlur={() => setFocusedField(null)}
-                                keyboardType="numeric"
-                                maxLength={15}
-                                placeholder="(41) 99999-8888"
-                                placeholderTextColor="#B0BEC5"
-                            />
-                        </View>
+                       
 
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Data de Nascimento</Text>
@@ -235,7 +206,7 @@ export const CreateParticipantScreen = () => {
                         </View>
 
                         <View style={styles.fieldGroup}>
-                            <Text style={styles.label}>Sexo</Text>
+                            <Text style={styles.label}>Gênero</Text>
                             <TouchableOpacity
                                 style={[styles.selectInput, { borderBottomColor: sexoModalOpen ? "#1F4273" : "#C5CED8" }]}
                                 activeOpacity={0.8}
