@@ -59,7 +59,7 @@ export const CreateUserScreen = () => {
                 onError: (error: any) => {
                     console.log("Erro ao criar responsável:", error);
 
-                    if (error.response?.status === 400) {
+                    if (error.response?.status === 409) {
                         Alert.alert("Erro", "Usuário já cadastrado.");
                     } else {
                         Alert.alert("Erro", "Ocorreu um erro ao criar o profissional de saúde. Tente novamente.");
