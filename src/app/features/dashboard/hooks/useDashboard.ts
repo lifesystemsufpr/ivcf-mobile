@@ -16,6 +16,7 @@ export const useDashboard = () => {
 
     if (data) {
         const rawTotal = data.summary?.totalParticipants;
+        
         totalParticipants = typeof rawTotal === 'number' ? rawTotal : 0;
 
         const rawAvg = data.summary?.avgScore;
@@ -48,6 +49,7 @@ export const useDashboard = () => {
 
     return {
         totalParticipants,
+        totalEvaluated: data?.summary?.totalEvaluated || 0,
         averageScore,
         ageData,
         riskData,

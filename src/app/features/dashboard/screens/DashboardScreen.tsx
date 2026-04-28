@@ -150,6 +150,7 @@ export const DashboardScreen = () => {
     const {
         totalParticipants,
         averageScore,
+        totalEvaluated,
         riskData,
         ageData,
         isLoading: loading,
@@ -265,18 +266,19 @@ export const DashboardScreen = () => {
                 <View style={styles.statsRow}>
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>Participantes</Text>
-                        {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'flex-start' }} /> : <Text style={styles.statValue}>{totalParticipants}</Text>}
+                        {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'center' }} /> : <Text style={styles.statValue}>{totalParticipants}</Text>}
                     </View>
+                   
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>Score Médio</Text>
-                        {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'flex-start' }} /> : <Text style={styles.statValue}>{averageScore}</Text>}
+                        {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'center' }} /> : <Text style={styles.statValue}>{averageScore}</Text>}
                     </View>
                 </View>
 
                 {/* Risk Distribution Chart */}
                 <BarChart
                     title="Distribuição de Risco"
-                    subtitle={`(Total de participantes: ${totalParticipants})`}
+                    subtitle={`(Total de avaliações: ${totalEvaluated})`}
                     data={riskData}
                     maxValue={riskMax}
                     legendItems={riskData.map(d => ({ label: d.label, color: d.color }))}
@@ -284,8 +286,8 @@ export const DashboardScreen = () => {
 
                 {/* Age Groups Chart */}
                 <BarChart
-                    title="Faixas Etárias Predominantes"
-                    subtitle={`(Total de participantes: ${totalParticipants})`}
+                    title="Distribuição em Faixa Etária"
+                    subtitle={`(Total de avaliações: ${totalEvaluated})`}
                     data={ageData}
                     maxValue={ageMax}
                     legendItems={ageData.map(d => ({ label: d.label, color: d.color }))}
@@ -390,6 +392,7 @@ const styles = StyleSheet.create({
     statCard: {
         flex: 1,
         backgroundColor: "#FFFFFF",
+      
         borderRadius: 16,
         padding: 20,
         elevation: 3,
@@ -407,6 +410,7 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 32,
         fontWeight: "bold",
+        textAlign: "center",
         color: "#1F4273",
     },
 });
