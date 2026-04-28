@@ -264,11 +264,11 @@ export const DashboardScreen = () => {
                 {/* Stats Cards */}
                 <View style={styles.statsRow}>
                     <View style={styles.statCard}>
-                        <Text style={styles.statLabel}>Total de participantes</Text>
+                        <Text style={styles.statLabel}>Participantes</Text>
                         {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'flex-start' }} /> : <Text style={styles.statValue}>{totalParticipants}</Text>}
                     </View>
                     <View style={styles.statCard}>
-                        <Text style={styles.statLabel}>Score médio</Text>
+                        <Text style={styles.statLabel}>Score Médio</Text>
                         {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'flex-start' }} /> : <Text style={styles.statValue}>{averageScore}</Text>}
                     </View>
                 </View>
@@ -400,7 +400,8 @@ const styles = StyleSheet.create({
     },
     statLabel: {
         fontSize: 14,
-        color: "#666666",
+        color: "#000000",
+        fontWeight: "bold",
         marginBottom: 8,
     },
     statValue: {
