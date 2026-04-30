@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const instructions = [
     {
@@ -34,6 +35,7 @@ const instructions = [
 export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
     const route = useRoute();
     const participant = (route.params as any)?.participant;
+    const insets = useSafeAreaInsets();
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1F4273" />
@@ -52,7 +54,7 @@ export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
                 contentContainerStyle={styles.contentContainer}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.card}>
+                <View style={[styles.card, { paddingBottom: Math.max(insets.bottom + 20, 40) }]}>
                     <Text style={styles.title}>
                         Antes de iniciar a{"\n"}avaliação
                     </Text>
@@ -86,9 +88,9 @@ export const InstructionsScreen = ({ navigation }: { navigation: any }) => {
                         <TouchableOpacity
                             style={styles.button}
                             activeOpacity={0.8}
-                            onPress={() => navigation.navigate("Questionnaire", { participant })}
+                            onPress={() => navigation.navigate("SearchParticipant", { fromMenu: false })}
                         >
-                            <Text style={styles.buttonText}>Iniciar</Text>
+                            <Text style={styles.buttonText}>Continuar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -142,7 +144,6 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 30,
         paddingHorizontal: 24,
         paddingTop: 32,
-        paddingBottom: 40,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,

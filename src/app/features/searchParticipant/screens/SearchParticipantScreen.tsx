@@ -15,7 +15,7 @@ import {
     RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSearchParticipant } from "../hooks/useSearchParticipant";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { ParticipantDTO } from "../dto/ParticipantDTO";
@@ -42,6 +42,12 @@ export const SearchParticipantScreen = ({ route }: any) => {
             fetchNextPage();
         }
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
     const renderFooter = () => {
         if (!isFetchingNextPage) return null;
@@ -75,7 +81,7 @@ export const SearchParticipantScreen = ({ route }: any) => {
                 if (fromMenu) {
                     navigation.navigate("UserDetail", { participant: item });
                 } else {
-                    navigation.navigate("Instructions", { participant: item });
+                    navigation.navigate("Questionnaire", { participant: item });
                 }
             }}
         >
@@ -131,23 +137,6 @@ export const SearchParticipantScreen = ({ route }: any) => {
                     <View style={styles.menuDropdown}>
                         <TouchableOpacity
                             style={styles.menuItem}
-                            onPress={() => {
-                                setMenuVisible(false);
-                                navigation.navigate("Add", {
-                                    screen: "SearchParticipant",
-                                    params: { fromMenu: true },
-                                });
-                            }}
-                            activeOpacity={0.7}
-                        >
-                            <Ionicons name="search" size={20} color="#1F4273" />
-                            <Text style={[styles.menuItemText, { color: "#1F4273" }]}>Pesquisar participante</Text>
-                        </TouchableOpacity>
-
-                        <View style={{ height: 1, backgroundColor: "#E0E0E0", width: "100%" }} />
-
-                        <TouchableOpacity
-                            style={styles.menuItem}
                             onPress={handleLogout}
                             activeOpacity={0.7}
                         >
@@ -160,7 +149,7 @@ export const SearchParticipantScreen = ({ route }: any) => {
 
             {/* Content */}
             <View style={styles.content}>
-                <Text style={styles.title}>{fromMenu ? "Pesquisar participante" : "Buscar participante"}</Text>
+                <Text style={styles.title}>{fromMenu ? "Pesquisar participante" : "Selecione um participante"}</Text>
 
                 {/* Search Input */}
                 <View style={styles.searchContainer}>
@@ -214,6 +203,17 @@ export const SearchParticipantScreen = ({ route }: any) => {
                     />
                 )}
             </View>
+
+            {/* FAB Button */}
+            {fromMenu && (
+                <TouchableOpacity
+                    style={styles.fab}
+                    onPress={() => navigation.navigate("CreateParticipant")}
+                    activeOpacity={0.8}
+                >
+                    <Ionicons name="person-add" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+            )}
         </View>
     );
 };
@@ -388,5 +388,23 @@ const styles = StyleSheet.create({
         color: "#999999",
         fontSize: 14,
         marginTop: 40,
+    },
+
+    // FAB
+    fab: {
+        position: "absolute",
+        right: 20,
+        bottom: 140,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: "#1F4273",
+        alignItems: "center",
+        justifyContent: "center",
+        elevation: 6,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.27,
+        shadowRadius: 4.65,
     },
 });

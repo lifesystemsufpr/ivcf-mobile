@@ -83,10 +83,11 @@ export const LoginScreen = () => {
                 {/* Card de Login */}
                 <KeyboardAvoidingView
                     style={styles.cardWrapper}
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
-                    keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+                    behavior="padding"
+                    keyboardVerticalOffset={0}
                 >
                     <ScrollView
+                        automaticallyAdjustKeyboardInsets={true}
                         contentContainerStyle={styles.scrollContent}
                         keyboardShouldPersistTaps="handled"
                         bounces={false}

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, DimensionValue } from "react-native";
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, DimensionValue, Modal } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { CommonActions } from "@react-navigation/native";
 import { Alert, ActivityIndicator } from "react-native";
@@ -56,7 +56,7 @@ export const ResultScreen: React.FC<Props> = ({ navigation, route }) => {
 
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-    const handleSubmit = async () => {
+    const executeSubmit = async () => {
         if (isSubmitting) return;
 
         const routeParams: any = route.params ?? {};
@@ -141,10 +141,36 @@ export const ResultScreen: React.FC<Props> = ({ navigation, route }) => {
         }
     };
 
+    const confirmSubmit = () => {
+        Alert.alert(
+            "Confirmar Envio",
+            "Deseja realmente enviar o resultado desta avaliação?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { text: "Enviar", style: "default", onPress: executeSubmit }
+            ],
+            { cancelable: true }
+        );
+    };
+
     
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1F385C" />
+
+            <Modal
+                transparent={true}
+                visible={isSubmitting}
+                animationType="fade"
+                onRequestClose={() => {}}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <ActivityIndicator size="large" color="#7EB62A" />
+                        <Text style={styles.modalText}>Enviando resultado...</Text>
+                    </View>
+                </View>
+            </Modal>
 
             {/* Header portion */}
             <View style={styles.header}>
@@ -204,7 +230,7 @@ export const ResultScreen: React.FC<Props> = ({ navigation, route }) => {
 
                     <TouchableOpacity
                         style={[styles.navButton, styles.primaryButton]}
-                        onPress={handleSubmit}
+                        onPress={confirmSubmit}
                         activeOpacity={0.8}
                         disabled={isSubmitting}
                     >
@@ -391,5 +417,29 @@ const styles = StyleSheet.create({
         color: "#FFF",
         fontWeight: "700",
         fontSize: 15,
+    },
+    
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalContent: {
+        backgroundColor: "#FFFFFF",
+        padding: 24,
+        borderRadius: 12,
+        alignItems: "center",
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+    modalText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: "#1F385C",
+        fontWeight: "600",
     },
 });

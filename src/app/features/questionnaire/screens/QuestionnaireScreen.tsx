@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -96,6 +96,48 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
     const { questionnaire, questions, isLoading, isError, refetch } = useQuestionnaire();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<Answers>({});
+
+    useEffect(() => {
+        if (questions.length > 0 && participant?.birthday && !answers[questions[0].id]) {
+            const today = new Date();
+            const birthDate = new Date(participant.birthday);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            const firstQuestion = questions[0];
+            let matchedOptionId = null;
+
+            for (const option of firstQuestion.options) {
+                const nums = option.label.match(/\d+/g);
+                if (nums) {
+                    if (nums.length >= 2) {
+                        const min = parseInt(nums[0], 10);
+                        const max = parseInt(nums[1], 10);
+                        if (age >= min && age <= max) {
+                            matchedOptionId = option.id;
+                            break;
+                        }
+                    } else if (nums.length === 1) {
+                        const min = parseInt(nums[0], 10);
+                        if (age >= min) {
+                            matchedOptionId = option.id;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (matchedOptionId) {
+                setAnswers(prev => ({
+                    ...prev,
+                    [firstQuestion.id]: matchedOptionId
+                }));
+            }
+        }
+    }, [questions, participant, answers]);
 
     if (isLoading) {
         return (
@@ -237,8 +279,10 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                                         style={[
                                             styles.optionButton,
                                             selected && styles.optionButtonSelected,
+                                            currentIndex === 0 && { opacity: 0.8 },
                                         ]}
-                                        activeOpacity={0.8}
+                                        activeOpacity={currentIndex === 0 ? 1 : 0.8}
+                                        disabled={currentIndex === 0}
                                         onPress={() =>
                                             handleSelectOption(
                                                 currentQuestion.id,

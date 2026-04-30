@@ -63,7 +63,7 @@ export const CreateParticipantScreen = () => {
     };
 
     const handleContinuar = async () => {
-        if (!nome || !email  || !dataNasc || !sexo || !altura || !peso) {
+        if (!nome || !email || !dataNasc || !sexo || !altura || !peso) {
             Alert.alert("Atenção", "Por favor, preencha todos os campos.");
             return;
         }
@@ -143,9 +143,10 @@ export const CreateParticipantScreen = () => {
 
             <KeyboardAvoidingView
                 style={styles.keyboardView}
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                behavior="padding"
             >
                 <ScrollView
+                    automaticallyAdjustKeyboardInsets={true}
                     contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20, paddingBottom: Math.max(insets.bottom + 80, 100) }]}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
@@ -188,7 +189,7 @@ export const CreateParticipantScreen = () => {
                             />
                         </View>
 
-                       
+
 
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Data de Nascimento</Text>
@@ -248,6 +249,8 @@ export const CreateParticipantScreen = () => {
                                 onFocus={() => setFocusedField("peso")}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="70kg"
+                                keyboardType="numeric"
+                                maxLength={3}
                                 placeholderTextColor="#B0BEC5"
                             />
                         </View>

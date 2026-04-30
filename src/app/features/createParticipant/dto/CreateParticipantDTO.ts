@@ -17,7 +17,7 @@ export type CreateParticipantPayloadDTO = {
     user: {
         fullName: string;
         email: string;
-        phone: string;
+
         gender: GenderDTO;
         active: boolean;
     };

@@ -59,8 +59,13 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     if (!event.defaultPrevented) {
       if (route.name === "Add") {
         navigation.navigate("Add", {
-          screen: "SearchParticipant",
+          screen: "Instructions",
           params: { fromMenu: false },
+        });
+      } else if (route.name === "ListParticipants") {
+        navigation.navigate("ListParticipants", {
+          screen: "SearchParticipant",
+          params: { fromMenu: true },
         });
       } else if (!isFocused) {
         navigation.navigate(route.name);
@@ -70,7 +75,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   const homeRoute = state.routes[0];
   const addRoute = state.routes[1];
-  const participantsRoute = state.routes[2];
+  const listParticipantsRoute = state.routes[2];
 
   const shouldHideTabBar = () => {
     const currentTab = state.routes[state.index] as any;
@@ -90,7 +95,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       }
     }
 
-    if (currentTab.name === "Participants") {
+    if (currentTab.name === "CreateParticipant") {
       return true;
     }
 
@@ -101,8 +106,10 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     return null;
   }
 
+  const bottomOffset = Platform.OS === 'android' ? Math.max(insets.bottom, 20) : insets.bottom + 5;
+
   return (
-    <View style={[tabStyles.wrapper, { bottom: insets.bottom + 5 }]}>
+    <View style={[tabStyles.wrapper, { bottom: bottomOffset }]}>
       <View style={tabStyles.bar}>
         {/* Left icon - Home */}
         <TouchableOpacity
@@ -120,14 +127,14 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         {/* Spacer for center button */}
         <View style={tabStyles.centerSpacer} />
 
-        {/* Right icon - New User */}
+        {/* Right icon - List Participants */}
         <TouchableOpacity
-          onPress={() => onTabPress(participantsRoute, 2)}
+          onPress={() => onTabPress(listParticipantsRoute, 2)}
           activeOpacity={0.7}
           style={tabStyles.tabButton}
         >
           <Ionicons
-            name="person-add"
+            name="person"
             size={24}
             color={state.index === 2 ? "#FFFFFF" : "rgba(255,255,255,0.55)"}
           />
@@ -165,7 +172,8 @@ export function MainNavigator() {
     >
       <Tab.Screen name="Home" component={DashboardNavigator} />
       <Tab.Screen name="Add" component={SearchParticipantNavigator} />
-      <Tab.Screen name="Participants" component={CreateParticipantNavigator} options={{ unmountOnBlur: true } as any} />
+      <Tab.Screen name="ListParticipants" component={SearchParticipantNavigator} initialParams={{ screen: "SearchParticipant", params: { fromMenu: true } }} />
+      <Tab.Screen name="CreateParticipant" component={CreateParticipantNavigator} options={{ unmountOnBlur: true, tabBarButton: () => null } as any} />
     </Tab.Navigator>
   );
 }

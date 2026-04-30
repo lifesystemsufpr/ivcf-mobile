@@ -60,9 +60,10 @@ export const RecoveryPasswordScreen = () => {
         
                     <KeyboardAvoidingView
                         style={styles.keyboardView}
-                        behavior={Platform.OS === "ios" ? "padding" : undefined}
+                        behavior="padding"
                     >
                         <ScrollView
+                            automaticallyAdjustKeyboardInsets={true}
                             contentContainerStyle={styles.scrollContent}
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}

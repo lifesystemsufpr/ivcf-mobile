@@ -16,7 +16,7 @@ import {
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { useNavigation, CommonActions } from "@react-navigation/native";
+import { useNavigation, CommonActions, useFocusEffect } from "@react-navigation/native";
 import { useDashboard } from "../hooks/useDashboard";
 
 const { width } = Dimensions.get("window");
@@ -176,6 +176,12 @@ export const DashboardScreen = () => {
         }
     }, [error]);
 
+    useFocusEffect(
+        React.useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
+
     // Calcula dinamicamente o maxValue do gráfico
     const riskMax = Math.max(...riskData.map(d => d.value), 4);
     const ageMax = Math.max(...ageData.map(d => d.value), 4);
@@ -220,23 +226,6 @@ export const DashboardScreen = () => {
                     onPress={() => setMenuVisible(false)}
                 >
                     <View style={[styles.menuDropdown, { top: insets.top + 65 }]}>
-                        <TouchableOpacity
-                            style={styles.menuItem}
-                            onPress={() => {
-                                setMenuVisible(false);
-                                navigation.navigate("Add", {
-                                    screen: "SearchParticipant",
-                                    params: { fromMenu: true }
-                                });
-                            }}
-                            activeOpacity={0.7}
-                        >
-                            <Ionicons name="search" size={20} color="#1F4273" />
-                            <Text style={[styles.menuItemText, { color: "#1F4273" }]}>Pesquisar participante</Text>
-                        </TouchableOpacity>
-
-                        <View style={{ height: 1, backgroundColor: "#E0E0E0", width: "100%" }} />
-
                         <TouchableOpacity
                             style={styles.menuItem}
                             onPress={handleLogout}

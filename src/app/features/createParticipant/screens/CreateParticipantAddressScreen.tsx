@@ -26,7 +26,7 @@ export const CreateParticipantAddressScreen = () => {
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<AddressScreenRouteProp>();
 
-    const { nome, email, phone, dataNasc, sexo, altura, peso } = route.params || {};
+    const { nome, email, dataNasc, sexo, altura, peso } = route.params || {};
     const createParticipant = useCreateParticipant();
     const insets = useSafeAreaInsets();
 
@@ -40,6 +40,12 @@ export const CreateParticipantAddressScreen = () => {
 
     const [isCepLoading, setIsCepLoading] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
+    const [cepDisabledFields, setCepDisabledFields] = useState({
+        rua: false,
+        bairro: false,
+        cidade: false,
+        estado: false,
+    });
 
     const getBorderColor = (field: string) => focusedField === field ? "#1F4273" : "#C5CED8";
 
@@ -56,6 +62,10 @@ export const CreateParticipantAddressScreen = () => {
         setCep(formatted);
 
         const rawCep = formatted.replace(/\D/g, "");
+        if (rawCep.length < 8) {
+            setCepDisabledFields({ rua: false, bairro: false, cidade: false, estado: false });
+        }
+
         if (rawCep.length === 8) {
             setIsCepLoading(true);
             try {
@@ -66,12 +76,21 @@ export const CreateParticipantAddressScreen = () => {
                     setBairro(data.bairro || "");
                     setCidade(data.localidade || "");
                     setEstado(data.uf || "");
+                    
+                    setCepDisabledFields({
+                        rua: !!data.logradouro,
+                        bairro: !!data.bairro,
+                        cidade: !!data.localidade,
+                        estado: !!data.uf,
+                    });
                 } else {
                     Alert.alert("Atenção", "CEP não encontrado.");
+                    setCepDisabledFields({ rua: false, bairro: false, cidade: false, estado: false });
                 }
             } catch (error) {
                 console.error("Erro ao buscar CEP:", error);
                 Alert.alert("Erro", "Falha ao buscar endereço.");
+                setCepDisabledFields({ rua: false, bairro: false, cidade: false, estado: false });
             } finally {
                 setIsCepLoading(false);
             }
@@ -167,7 +186,6 @@ export const CreateParticipantAddressScreen = () => {
             user: {
                 fullName: nome,
                 email,
-                phone,
                 gender,
                 active: true,
             },
@@ -176,7 +194,7 @@ export const CreateParticipantAddressScreen = () => {
         try {
             await createParticipant.mutateAsync(payload);
             Alert.alert("Sucesso", "Participante cadastrado com sucesso!");
-            
+
             // Forcefully clear the input fields locally by resetting the internal stack
             navigation.dispatch(
                 CommonActions.reset({
@@ -200,9 +218,10 @@ export const CreateParticipantAddressScreen = () => {
 
             <KeyboardAvoidingView
                 style={styles.keyboardView}
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                behavior="padding"
             >
                 <ScrollView
+                    automaticallyAdjustKeyboardInsets={true}
                     contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20, paddingBottom: Math.max(insets.bottom + 80, 100) }]}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
@@ -240,13 +259,14 @@ export const CreateParticipantAddressScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Rua</Text>
                             <TextInput
-                                style={[styles.input, { borderBottomColor: getBorderColor("rua") }]}
+                                style={[styles.input, cepDisabledFields.rua && styles.disabledInput, { borderBottomColor: getBorderColor("rua") }]}
                                 value={rua}
                                 onChangeText={setRua}
                                 onFocus={() => setFocusedField("rua")}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="Nome da rua"
                                 placeholderTextColor="#B0BEC5"
+                                editable={!cepDisabledFields.rua}
                             />
                         </View>
 
@@ -284,25 +304,27 @@ export const CreateParticipantAddressScreen = () => {
                             <View style={[styles.fieldGroup, { flex: 1, minWidth: 140 }]}>
                                 <Text style={styles.label}>Bairro</Text>
                                 <TextInput
-                                    style={[styles.input, { borderBottomColor: getBorderColor("bairro") }]}
+                                    style={[styles.input, cepDisabledFields.bairro && styles.disabledInput, { borderBottomColor: getBorderColor("bairro") }]}
                                     value={bairro}
                                     onChangeText={setBairro}
                                     onFocus={() => setFocusedField("bairro")}
                                     onBlur={() => setFocusedField(null)}
                                     placeholder="Bairro"
                                     placeholderTextColor="#B0BEC5"
+                                    editable={!cepDisabledFields.bairro}
                                 />
                             </View>
                             <View style={[styles.fieldGroup, { flex: 1, minWidth: 140 }]}>
                                 <Text style={styles.label}>Cidade</Text>
                                 <TextInput
-                                    style={[styles.input, { borderBottomColor: getBorderColor("cidade") }]}
+                                    style={[styles.input, cepDisabledFields.cidade && styles.disabledInput, { borderBottomColor: getBorderColor("cidade") }]}
                                     value={cidade}
                                     onChangeText={setCidade}
                                     onFocus={() => setFocusedField("cidade")}
                                     onBlur={() => setFocusedField(null)}
                                     placeholder="Cidade"
                                     placeholderTextColor="#B0BEC5"
+                                    editable={!cepDisabledFields.cidade}
                                 />
                             </View>
                         </View>
@@ -311,7 +333,7 @@ export const CreateParticipantAddressScreen = () => {
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Estado</Text>
                             <TextInput
-                                style={[styles.input, { borderBottomColor: getBorderColor("estado") }]}
+                                style={[styles.input, cepDisabledFields.estado && styles.disabledInput, { borderBottomColor: getBorderColor("estado") }]}
                                 value={estado}
                                 onChangeText={setEstado}
                                 onFocus={() => setFocusedField("estado")}
@@ -320,6 +342,7 @@ export const CreateParticipantAddressScreen = () => {
                                 placeholderTextColor="#B0BEC5"
                                 maxLength={2}
                                 autoCapitalize="characters"
+                                editable={!cepDisabledFields.estado}
                             />
                         </View>
                     </View>
@@ -398,6 +421,10 @@ const styles = StyleSheet.create({
         color: "#333333",
         borderBottomWidth: 2,
         borderBottomColor: "#C5CED8",
+    },
+    disabledInput: {
+        backgroundColor: "#E0E6ED",
+        color: "#888888",
     },
     buttonContainer: {
         alignItems: "center",
