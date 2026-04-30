@@ -210,6 +210,18 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
 
     const handlePrevious = () => {
         if (currentIndex === 0) return;
+
+        // If we are at question 10 (index 9) and question 7 (index 6) was "Não", jump back to 7 (index 6)
+        if (currentIndex === 9 && questions.length > 6) {
+            const q7Id = questions[6].id;
+            const answer7 = answers[q7Id];
+            const option7 = questions[6].options.find(o => o.id === answer7);
+            if (option7 && option7.label.toLowerCase().trim() === "não") {
+                setCurrentIndex(6);
+                return;
+            }
+        }
+
         setCurrentIndex((index) => index - 1);
     };
 
@@ -225,6 +237,40 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
                 participantId: participant?.id,
             });
             return;
+        }
+
+        // Skip logic for Question 7 (index 6)
+        if (currentIndex === 6 && questions.length > 8) {
+            const answerId = answers[questions[6].id];
+            const selectedOption = questions[6].options.find(o => o.id === answerId);
+
+            if (selectedOption && selectedOption.label.toLowerCase().trim() === "não") {
+                // Auto-fill Questions 8 (index 7) and 9 (index 8) with "Não"
+                const q8 = questions[7];
+                const q9 = questions[8];
+
+                const noOption8 = q8.options.find(o => o.label.toLowerCase().trim() === "não")?.id;
+                const noOption9 = q9.options.find(o => o.label.toLowerCase().trim() === "não")?.id;
+
+                if (noOption8 && noOption9) {
+                    setAnswers(prev => ({
+                        ...prev,
+                        [q8.id]: noOption8,
+                        [q9.id]: noOption9
+                    }));
+                    setCurrentIndex(9); // Jump to Question 10 (index 9)
+                    return;
+                }
+            } else if (selectedOption && selectedOption.label.toLowerCase().trim() === "sim") {
+                // Clear Questions 8 and 9 if they were previously filled
+                const q8Id = questions[7].id;
+                const q9Id = questions[8].id;
+                setAnswers(prev => ({
+                    ...prev,
+                    [q8Id]: undefined,
+                    [q9Id]: undefined
+                }));
+            }
         }
 
         setCurrentIndex((index) => index + 1);
