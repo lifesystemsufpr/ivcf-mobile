@@ -6,11 +6,11 @@ import { CreateParticipantStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<CreateParticipantStackParamList>();
 
-export const CreateParticipantNavigator = () => {
+export const CreateParticipantStackNavigator = () => {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="CreateParticipant" component={CreateParticipantScreen} />
-            <Stack.Screen name="CreateParticipantAddress" component={CreateParticipantAddressScreen} />
+            <Stack.Screen name="CreateParticipantForm" component={CreateParticipantScreen} />
+            <Stack.Screen name="CreateParticipantAddressForm" component={CreateParticipantAddressScreen} />
         </Stack.Navigator>
     );
 };

@@ -8,7 +8,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardNavigator } from "../features/dashboard";
 import { SearchParticipantNavigator } from "../features/searchParticipant";
-import { CreateParticipantNavigator } from "../features/createParticipant";
 
 const Tab = createBottomTabNavigator();
 
@@ -95,10 +94,6 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       }
     }
 
-    if (currentTab.name === "CreateParticipant") {
-      return true;
-    }
-
     return false;
   };
 
@@ -173,7 +168,6 @@ export function MainNavigator() {
       <Tab.Screen name="Home" component={DashboardNavigator} />
       <Tab.Screen name="Add" component={SearchParticipantNavigator} />
       <Tab.Screen name="ListParticipants" component={SearchParticipantNavigator} initialParams={{ screen: "SearchParticipant", params: { fromMenu: true } }} />
-      <Tab.Screen name="CreateParticipant" component={CreateParticipantNavigator} options={{ unmountOnBlur: true, tabBarButton: () => null } as any} />
     </Tab.Navigator>
   );
 }

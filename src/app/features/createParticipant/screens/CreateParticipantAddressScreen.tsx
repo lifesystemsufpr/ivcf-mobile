@@ -19,8 +19,8 @@ import { CreateParticipantStackParamList } from "../navigation/types";
 import { useCreateParticipant } from "../hooks/useCreateParticipant";
 import type { CreateParticipantPayloadDTO } from "../dto/CreateParticipantDTO";
 
-type AddressScreenRouteProp = RouteProp<CreateParticipantStackParamList, "CreateParticipantAddress">;
-type NavigationProp = NativeStackNavigationProp<CreateParticipantStackParamList, "CreateParticipantAddress">;
+type AddressScreenRouteProp = RouteProp<CreateParticipantStackParamList, "CreateParticipantAddressForm">;
+type NavigationProp = NativeStackNavigationProp<CreateParticipantStackParamList, "CreateParticipantAddressForm">;
 
 export const CreateParticipantAddressScreen = () => {
     const navigation = useNavigation<NavigationProp>();
@@ -199,7 +199,7 @@ export const CreateParticipantAddressScreen = () => {
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
-                    routes: [{ name: "CreateParticipant" }],
+                    routes: [{ name: "CreateParticipantForm" }],
                 })
             );
 

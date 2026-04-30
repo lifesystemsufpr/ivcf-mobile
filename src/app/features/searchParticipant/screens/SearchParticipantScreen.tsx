@@ -19,11 +19,13 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSearchParticipant } from "../hooks/useSearchParticipant";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { ParticipantDTO } from "../dto/ParticipantDTO";
+import { CreateParticipantModal } from "../../createParticipant";
 
 
 export const SearchParticipantScreen = ({ route }: any) => {
     const [searchName, setSearchName] = useState("");
     const [menuVisible, setMenuVisible] = useState(false);
+    const [createModalVisible, setCreateModalVisible] = useState(false);
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const navigation = useNavigation<any>();
@@ -205,15 +207,25 @@ export const SearchParticipantScreen = ({ route }: any) => {
             </View>
 
             {/* FAB Button */}
-            {fromMenu && (
-                <TouchableOpacity
-                    style={styles.fab}
-                    onPress={() => navigation.navigate("CreateParticipant")}
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="person-add" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-            )}
+
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => setCreateModalVisible(true)}
+                activeOpacity={0.8}
+            >
+                <Ionicons name="person-add" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+
+
+            {/* Create Participant Modal */}
+            <CreateParticipantModal
+                visible={createModalVisible}
+                onClose={() => setCreateModalVisible(false)}
+                onSuccess={() => {
+                    setCreateModalVisible(false);
+                    refetch();
+                }}
+            />
         </View>
     );
 };

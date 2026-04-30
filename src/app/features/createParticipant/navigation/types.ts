@@ -1,6 +1,6 @@
 export type CreateParticipantStackParamList = {
-    CreateParticipant: undefined;
-    CreateParticipantAddress: {
+    CreateParticipantForm: undefined;
+    CreateParticipantAddressForm: {
         nome: string;
         email: string;
         dataNasc: string;

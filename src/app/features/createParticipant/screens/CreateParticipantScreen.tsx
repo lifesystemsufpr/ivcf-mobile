@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateParticipantStackParamList } from "../navigation/types";
 import { createParticipantApi } from "../api/createParticipantApi";
 
-type NavigationProp = NativeStackNavigationProp<CreateParticipantStackParamList, "CreateParticipant">;
+type NavigationProp = NativeStackNavigationProp<CreateParticipantStackParamList, "CreateParticipantForm">;
 
 export const CreateParticipantScreen = () => {
     const navigation = useNavigation<NavigationProp>();
@@ -120,7 +120,7 @@ export const CreateParticipantScreen = () => {
             Alert.alert("Atenção", "Participante já cadastrado.");
         } catch (error: any) {
             if (error?.response?.status === 404) {
-                navigation.navigate("CreateParticipantAddress", {
+                navigation.navigate("CreateParticipantAddressForm", {
                     nome,
                     email,
                     dataNasc,
