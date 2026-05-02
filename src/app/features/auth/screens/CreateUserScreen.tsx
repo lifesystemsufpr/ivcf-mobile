@@ -102,13 +102,13 @@ export const CreateUserScreen = () => {
 
 
 
-  {/* Nome */}
+                        {/* Nome */}
                         <View style={styles.fieldGroup}>
                             <Text style={styles.label}>Nome Completo</Text>
                             <TextInput
                                 style={styles.input}
                                 value={nome}
-                                onChangeText={(text) => setNome(text.trim())}
+                                onChangeText={(text) => setNome(text)}
                                 placeholder="Seu nome completo"
                                 placeholderTextColor="#B0BEC5"
                             />
@@ -122,7 +122,7 @@ export const CreateUserScreen = () => {
                             <TextInput
                                 style={styles.input}
                                 value={email}
-                                onChangeText={(text) => setEmail(text.trim())}
+                                onChangeText={(text) => setEmail(text)}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 placeholder="email@exemplo.com"
@@ -131,7 +131,7 @@ export const CreateUserScreen = () => {
                         </View>
 
 
-                      
+
 
 
                         {/* Especialidade */}
@@ -140,7 +140,7 @@ export const CreateUserScreen = () => {
                             <TextInput
                                 style={styles.input}
                                 value={speciality}
-                                onChangeText={(text) => setSpeciality(text.trim())}
+                                onChangeText={(text) => setSpeciality(text)}
                                 placeholder="Ex: Médico, Filho(a), Cuidador, etc."
                                 placeholderTextColor="#B0BEC5"
                             />
@@ -216,9 +216,8 @@ export const CreateUserScreen = () => {
                                         Ao utilizar este aplicativo, você concorda com os seguintes termos:{"\n\n"}
                                         1. <Text style={{ fontWeight: "bold" }}>Coleta de Dados:</Text> O aplicativo coleta dados pessoais e de saúde dos participantes exclusivamente para fins de avaliação clínica e funcional.{"\n\n"}
                                         2. <Text style={{ fontWeight: "bold" }}>Privacidade:</Text> Todos os dados coletados são tratados com confidencialidade e em conformidade com a Lei Geral de Proteção de Dados (LGPD).{"\n\n"}
-                                        3. <Text style={{ fontWeight: "bold" }}>Uso Profissional:</Text> Este aplicativo é destinado ao uso exclusivo de profissionais de saúde devidamente habilitados.{"\n\n"}
-                                        4. <Text style={{ fontWeight: "bold" }}>Responsabilidade:</Text> O profissional é responsável pela veracidade das informações inseridas e pela correta aplicação dos instrumentos de avaliação.{"\n\n"}
-                                        5. <Text style={{ fontWeight: "bold" }}>Armazenamento:</Text> Os dados são armazenados de forma segura em servidores protegidos e podem ser excluídos mediante solicitação.{"\n\n"}
+                                        3. <Text style={{ fontWeight: "bold" }}>Responsabilidade:</Text> O responsável é responsável pela veracidade das informações inseridas e pela correta aplicação dos instrumentos de avaliação.{"\n\n"}
+                                        4. <Text style={{ fontWeight: "bold" }}>Armazenamento:</Text> Os dados são armazenados de forma segura em servidores protegidos e podem ser excluídos mediante solicitação.{"\n\n"}
                                         Ao aceitar estes termos, você declara estar ciente e de acordo com todas as condições acima descritas.
                                     </Text>
                                 </ScrollView>

@@ -83,11 +83,11 @@ export const LoginScreen = () => {
                 {/* Card de Login */}
                 <KeyboardAvoidingView
                     style={styles.cardWrapper}
-                    behavior="padding"
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
                     keyboardVerticalOffset={0}
                 >
                     <ScrollView
-                        automaticallyAdjustKeyboardInsets={true}
+                        style={styles.scrollView}
                         contentContainerStyle={styles.scrollContent}
                         keyboardShouldPersistTaps="handled"
                         bounces={false}
@@ -179,7 +179,7 @@ export const LoginScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#1F4273",
+        backgroundColor: "#FFFFFF",
     },
     header: {
         backgroundColor: "#1F4273",
@@ -205,6 +205,9 @@ const styles = StyleSheet.create({
     },
     cardWrapper: {
         flex: 1,
+    },
+    scrollView: {
+        backgroundColor: "#1F4273",
     },
     scrollContent: {
         flexGrow: 1,
