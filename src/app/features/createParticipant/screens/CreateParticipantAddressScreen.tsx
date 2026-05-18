@@ -218,7 +218,7 @@ export const CreateParticipantAddressScreen = () => {
 
             <KeyboardAvoidingView
                 style={styles.keyboardView}
-                behavior="padding"
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
                 <ScrollView
                     automaticallyAdjustKeyboardInsets={true}
@@ -244,7 +244,7 @@ export const CreateParticipantAddressScreen = () => {
                                     onBlur={() => setFocusedField(null)}
                                     keyboardType="numeric"
                                     placeholder="00000-000"
-                                    placeholderTextColor="#B0BEC5"
+                                    placeholderTextColor="#000000"
                                     maxLength={9}
                                 />
                                 {isCepLoading && (
@@ -265,7 +265,7 @@ export const CreateParticipantAddressScreen = () => {
                                 onFocus={() => setFocusedField("rua")}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="Nome da rua"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                                 editable={!cepDisabledFields.rua}
                             />
                         </View>
@@ -281,7 +281,7 @@ export const CreateParticipantAddressScreen = () => {
                                 onBlur={() => setFocusedField(null)}
                                 keyboardType="numeric"
                                 placeholder="Número"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                             />
                         </View>
 
@@ -295,7 +295,7 @@ export const CreateParticipantAddressScreen = () => {
                                 onFocus={() => setFocusedField("complemento")}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="Complemento (opcional)"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                             />
                         </View>
 
@@ -310,7 +310,7 @@ export const CreateParticipantAddressScreen = () => {
                                     onFocus={() => setFocusedField("bairro")}
                                     onBlur={() => setFocusedField(null)}
                                     placeholder="Bairro"
-                                    placeholderTextColor="#B0BEC5"
+                                    placeholderTextColor="#000000"
                                     editable={!cepDisabledFields.bairro}
                                 />
                             </View>
@@ -323,7 +323,7 @@ export const CreateParticipantAddressScreen = () => {
                                     onFocus={() => setFocusedField("cidade")}
                                     onBlur={() => setFocusedField(null)}
                                     placeholder="Cidade"
-                                    placeholderTextColor="#B0BEC5"
+                                    placeholderTextColor="#000000"
                                     editable={!cepDisabledFields.cidade}
                                 />
                             </View>
@@ -339,7 +339,7 @@ export const CreateParticipantAddressScreen = () => {
                                 onFocus={() => setFocusedField("estado")}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="Estado (UF)"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                                 maxLength={2}
                                 autoCapitalize="characters"
                                 editable={!cepDisabledFields.estado}

@@ -32,6 +32,9 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
+    const [participantExistsModal, setParticipantExistsModal] = useState(false);
+    const [existingParticipantId, setExistingParticipantId] = useState<string | null>(null);
+    const [isLinking, setIsLinking] = useState(false);
 
     // Step 1 Data
     const [nome, setNome] = useState("");
@@ -142,17 +145,44 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
 
         setIsLoading(true);
         try {
-            await createParticipantApi.checkEmail(email);
-            Alert.alert("Atenção", "Participante já cadastrado.");
+            const response = await createParticipantApi.checkEmail(email);
+            // 200 — participante já existe
+            const data = response?.data;
+            console.log("[checkEmail] 200 response data:", JSON.stringify(data));
+            const participantId = data?.id ?? data?.participantId ?? data?.participant?.id ?? null;
+            setExistingParticipantId(participantId);
+            setParticipantExistsModal(true);
         } catch (error: any) {
             if (error?.response?.status === 404) {
                 setStep(2);
+            } else if (error?.response?.status === 409) {
+                const data = error.response?.data;
+                console.log("[checkEmail] 409 response data:", JSON.stringify(data));
+                const participantId = data?.id ?? data?.participantId ?? data?.participant?.id ?? null;
+                setExistingParticipantId(participantId);
+                setParticipantExistsModal(true);
             } else {
                 console.error("Erro ao verificar email:", error);
                 Alert.alert("Erro", "Não foi possível verificar o e-mail. Tente novamente.");
             }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleLinkParticipant = async () => {
+        setIsLinking(true);
+        try {
+            await createParticipantApi.linkParticipant(existingParticipantId ?? "");
+            setParticipantExistsModal(false);
+            Alert.alert("Sucesso", "Participante vinculado com sucesso!", [
+                { text: "OK", onPress: onSuccess },
+            ]);
+        } catch (error: any) {
+            console.error("Erro ao vincular participante:", error);
+            Alert.alert("Erro", "Não foi possível vincular o participante. Tente novamente.");
+        } finally {
+            setIsLinking(false);
         }
     };
 
@@ -262,6 +292,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     onFocus={() => setFocusedField("nome")}
                     onBlur={() => setFocusedField(null)}
                     placeholder="Nome completo"
+                    placeholderTextColor="#000000"
                 />
             </View>
             <View style={styles.fieldGroup}>
@@ -275,6 +306,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     keyboardType="email-address"
                     autoCapitalize="none"
                     placeholder="email@exemplo.com"
+                    placeholderTextColor="#000000"
                 />
             </View>
             <View style={styles.fieldGroup}>
@@ -288,6 +320,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     keyboardType="numeric"
                     maxLength={10}
                     placeholder="dd/mm/aaaa"
+                    placeholderTextColor="#000000"
                 />
             </View>
             <View style={styles.fieldGroup}>
@@ -312,6 +345,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         keyboardType="numeric"
                         maxLength={3}
                         placeholder="170"
+                        placeholderTextColor="#000000"
                     />
                 </View>
                 <View style={[styles.fieldGroup, { flex: 1 }]}>
@@ -325,6 +359,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         keyboardType="numeric"
                         maxLength={3}
                         placeholder="70"
+                        placeholderTextColor="#000000"
                     />
                 </View>
             </View>
@@ -348,6 +383,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         keyboardType="numeric"
                         maxLength={9}
                         placeholder="00000-000"
+                        placeholderTextColor="#000000"
                     />
                     {isCepLoading && <ActivityIndicator style={styles.innerLoader} size="small" color="#1F4273" />}
                 </View>
@@ -360,6 +396,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     onChangeText={setRua}
                     editable={!cepDisabledFields.rua}
                     placeholder="Nome da rua"
+                    placeholderTextColor="#000000"
                 />
             </View>
             <View style={styles.row}>
@@ -371,6 +408,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         onChangeText={setNumero}
                         keyboardType="numeric"
                         placeholder="123"
+                        placeholderTextColor="#000000"
                     />
                 </View>
                 <View style={[styles.fieldGroup, { flex: 2 }]}>
@@ -380,6 +418,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         value={complemento}
                         onChangeText={setComplemento}
                         placeholder="Opcional"
+                        placeholderTextColor="#000000"
                     />
                 </View>
             </View>
@@ -392,6 +431,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         onChangeText={setBairro}
                         editable={!cepDisabledFields.bairro}
                         placeholder="Bairro"
+                        placeholderTextColor="#000000"
                     />
                 </View>
                 <View style={[styles.fieldGroup, { flex: 1 }]}>
@@ -402,6 +442,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         onChangeText={setCidade}
                         editable={!cepDisabledFields.cidade}
                         placeholder="Cidade"
+                        placeholderTextColor="#000000"
                     />
                 </View>
             </View>
@@ -415,6 +456,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     maxLength={2}
                     autoCapitalize="characters"
                     placeholder="PR"
+                    placeholderTextColor="#000000"
                 />
             </View>
             <View style={styles.row}>
@@ -446,6 +488,47 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         {step === 1 ? renderStep1() : renderStep2()}
                     </ScrollView>
                 </View>
+
+                {/* Modal — Participante já cadastrado */}
+                <Modal
+                    visible={participantExistsModal}
+                    transparent
+                    animationType="slide"
+                    onRequestClose={() => setParticipantExistsModal(false)}
+                >
+                    <Pressable
+                        style={styles.linkModalBackdrop}
+                        onPress={() => setParticipantExistsModal(false)}
+                    >
+                        <Pressable style={styles.linkModalCard} onPress={(e) => e.stopPropagation()}>
+                            <Text style={styles.linkModalTitle}>Participante já cadastrado</Text>
+                            <Text style={styles.linkModalDescription}>
+                                Já existe um participante cadastrado com este e-mail. Deseja vinculá-lo ao seu perfil?
+                            </Text>
+
+                            <TouchableOpacity
+                                style={[styles.linkButton, isLinking && styles.linkButtonDisabled]}
+                                activeOpacity={0.8}
+                                onPress={handleLinkParticipant}
+                                disabled={isLinking}
+                            >
+                                {isLinking ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.linkButtonText}>Vincular participante</Text>
+                                )}
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.linkModalCancel}
+                                activeOpacity={0.8}
+                                onPress={() => setParticipantExistsModal(false)}
+                            >
+                                <Text style={styles.linkModalCancelText}>Usar outro e-mail</Text>
+                            </TouchableOpacity>
+                        </Pressable>
+                    </Pressable>
+                </Modal>
 
                 {/* Gender Picker Modal */}
                 <Modal visible={sexoModalOpen} transparent animationType="fade">
@@ -552,7 +635,7 @@ const styles = StyleSheet.create({
         color: "#333",
     },
     selectPlaceholder: {
-        color: "#B0BEC5",
+        color: "#000000",
     },
     selectChevron: {
         fontSize: 16,
@@ -621,5 +704,67 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: "#333",
         textAlign: "center",
+    },
+    // Modal — vincular participante
+    linkModalBackdrop: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.35)",
+        justifyContent: "flex-end",
+    },
+    linkModalCard: {
+        backgroundColor: "#FFFFFF",
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingTop: 24,
+        paddingBottom: 40,
+        paddingHorizontal: 24,
+    },
+    linkModalTitle: {
+        fontSize: 17,
+        fontWeight: "700",
+        color: "#1F4273",
+        marginBottom: 10,
+        textAlign: "center",
+    },
+    linkModalDescription: {
+        fontSize: 14,
+        color: "#6B7B8D",
+        textAlign: "center",
+        marginBottom: 24,
+        lineHeight: 20,
+    },
+    linkButton: {
+        backgroundColor: "#72AB24",
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: "center",
+        marginBottom: 10,
+        elevation: 2,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+    },
+    linkButtonDisabled: {
+        opacity: 0.7,
+    },
+    linkButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "700",
+    },
+    linkModalCancel: {
+        paddingVertical: 14,
+        borderRadius: 12,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#C5CED8",
+        alignItems: "center",
+        marginTop: 4,
+    },
+    linkModalCancelText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#6B7B8D",
     },
 });

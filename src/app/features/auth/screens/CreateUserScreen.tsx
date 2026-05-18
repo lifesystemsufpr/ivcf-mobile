@@ -75,7 +75,7 @@ export const CreateUserScreen = () => {
 
             <KeyboardAvoidingView
                 style={styles.keyboardView}
-                behavior="padding"
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
                 <ScrollView
                     automaticallyAdjustKeyboardInsets={true}
@@ -110,7 +110,7 @@ export const CreateUserScreen = () => {
                                 value={nome}
                                 onChangeText={(text) => setNome(text)}
                                 placeholder="Seu nome completo"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#888888"
                             />
                         </View>
 
@@ -126,7 +126,7 @@ export const CreateUserScreen = () => {
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 placeholder="email@exemplo.com"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#888888"
                             />
                         </View>
 
@@ -142,7 +142,7 @@ export const CreateUserScreen = () => {
                                 value={speciality}
                                 onChangeText={(text) => setSpeciality(text)}
                                 placeholder="Ex: Médico, Filho(a), Cuidador, etc."
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#888888"
                             />
                         </View>
 
@@ -159,7 +159,7 @@ export const CreateUserScreen = () => {
 
                                 placeholder="Minimo 6 caracteres
                                 "
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#888888"
                             />
                         </View>
 
@@ -172,7 +172,7 @@ export const CreateUserScreen = () => {
                                 onChangeText={(text) => setConfirmSenha(text)}
                                 secureTextEntry
                                 placeholder="Confirme sua senha"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#888888"
                             />
                         </View>
                     </View>

@@ -257,7 +257,7 @@ export const DashboardScreen = () => {
                         <Text style={styles.statLabel}>Participantes</Text>
                         {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'center' }} /> : <Text style={styles.statValue}>{totalParticipants}</Text>}
                     </View>
-                   
+
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>Score Médio</Text>
                         {loading ? <ActivityIndicator size="small" color="#1F4273" style={{ alignSelf: 'center' }} /> : <Text style={styles.statValue}>{averageScore}</Text>}
@@ -267,7 +267,7 @@ export const DashboardScreen = () => {
                 {/* Risk Distribution Chart */}
                 <BarChart
                     title="Distribuição de Risco"
-                    subtitle={`(Total de avaliações: ${totalEvaluated})`}
+                    subtitle={`(Total de participantes avaliados: ${totalEvaluated})`}
                     data={riskData}
                     maxValue={riskMax}
                     legendItems={riskData.map(d => ({ label: d.label, color: d.color }))}
@@ -276,7 +276,7 @@ export const DashboardScreen = () => {
                 {/* Age Groups Chart */}
                 <BarChart
                     title="Distribuição em Faixa Etária"
-                    subtitle={`(Total de avaliações: ${totalEvaluated})`}
+                    subtitle={`(Total de participantes avaliados: ${totalEvaluated})`}
                     data={ageData}
                     maxValue={ageMax}
                     legendItems={ageData.map(d => ({ label: d.label, color: d.color }))}
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     statCard: {
         flex: 1,
         backgroundColor: "#FFFFFF",
-      
+
         borderRadius: 16,
         padding: 20,
         elevation: 3,

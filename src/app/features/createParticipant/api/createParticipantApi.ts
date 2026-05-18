@@ -6,5 +6,7 @@ export const createParticipantApi = {
         httpClient.post("/participant", payload),
     checkEmail: (email: string) =>
         httpClient.get(`/participant/check-email/${email}`),
+    linkParticipant: (participantId: string) =>
+        httpClient.post("/health-professional/link-participant", { participantId }),
 };
 

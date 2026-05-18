@@ -60,7 +60,7 @@ export const RecoveryPasswordScreen = () => {
         
                     <KeyboardAvoidingView
                         style={styles.keyboardView}
-                        behavior="padding"
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
                     >
                         <ScrollView
                             automaticallyAdjustKeyboardInsets={true}
@@ -95,7 +95,7 @@ export const RecoveryPasswordScreen = () => {
                                         keyboardType="email-address"
                                         autoCapitalize="none"
                                         placeholder="email@exemplo.com"
-                                        placeholderTextColor="#B0BEC5"
+                                        placeholderTextColor="#888888"
                                     />
                                 </View>
          

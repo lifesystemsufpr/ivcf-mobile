@@ -83,7 +83,7 @@ export const LoginScreen = () => {
                 {/* Card de Login */}
                 <KeyboardAvoidingView
                     style={styles.cardWrapper}
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
                     keyboardVerticalOffset={0}
                 >
                     <ScrollView
@@ -106,7 +106,7 @@ export const LoginScreen = () => {
                                     <TextInput
                                         style={styles.input}
                                         placeholder="seu@email.com"
-                                        placeholderTextColor="#A0A0A0"
+                                        placeholderTextColor="#888888"
                                         value={email}
                                         onChangeText={setEmail}
                                         keyboardType="email-address"
@@ -122,7 +122,7 @@ export const LoginScreen = () => {
                                         <TextInput
                                             style={styles.passwordInput}
                                             placeholder="Digite sua senha"
-                                            placeholderTextColor="#A0A0A0"
+                                            placeholderTextColor="#888888"
                                             value={senha}
                                             onChangeText={setSenha}
                                             secureTextEntry={!showPassword}

@@ -173,7 +173,6 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
                             <View style={styles.col}>
                                 <Text style={styles.label}>IMC (Kg/m²)</Text>
                                 <Text style={styles.value}>
-                                    {/* Mock calculation or display existing */}
                                     {participant.weight && participant.height && participant.height > 0
                                         ? (
                                             participant.weight /

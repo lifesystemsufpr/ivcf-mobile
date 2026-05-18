@@ -35,6 +35,9 @@ export const CreateParticipantScreen = () => {
     const [peso, setPeso] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
+    const [participantExistsModal, setParticipantExistsModal] = useState(false);
+    const [existingParticipantId, setExistingParticipantId] = useState<string | null>(null);
+    const [isLinking, setIsLinking] = useState(false);
 
     const getBorderColor = (field: string) => focusedField === field ? "#1F4273" : "#C5CED8";
 
@@ -116,8 +119,11 @@ export const CreateParticipantScreen = () => {
 
         setIsLoading(true);
         try {
-            await createParticipantApi.checkEmail(email);
-            Alert.alert("Atenção", "Participante já cadastrado.");
+            const response = await createParticipantApi.checkEmail(email);
+            // Participante encontrado — abre o modal de vínculo
+            const participantId = response?.data?.id ?? response?.data?.participantId ?? null;
+            setExistingParticipantId(participantId);
+            setParticipantExistsModal(true);
         } catch (error: any) {
             if (error?.response?.status === 404) {
                 navigation.navigate("CreateParticipantAddressForm", {
@@ -128,6 +134,18 @@ export const CreateParticipantScreen = () => {
                     altura,
                     peso,
                 });
+            } else if (error?.response?.status === 409) {
+                // Extrai o participantId do body do erro 409
+                const data = error.response?.data;
+                console.log("[checkEmail] 409 response data:", JSON.stringify(data));
+                const participantId =
+                    data?.id ??
+                    data?.participantId ??
+                    data?.participant?.id ??
+                    null;
+                setExistingParticipantId(participantId);
+                setParticipantExistsModal(true);
+
             } else {
                 console.error("Erro ao verificar email:", error);
                 Alert.alert("Erro", "Não foi possível verificar o e-mail. Tente novamente.");
@@ -137,13 +155,27 @@ export const CreateParticipantScreen = () => {
         }
     };
 
+    const handleLinkParticipant = async () => {
+        setIsLinking(true);
+        try {
+            await createParticipantApi.linkParticipant(existingParticipantId ?? "");
+            setParticipantExistsModal(false);
+            Alert.alert("Sucesso", "Participante vinculado com sucesso!");
+        } catch (error: any) {
+            console.error("Erro ao vincular participante:", error);
+            Alert.alert("Erro", "Não foi possível vincular o participante. Tente novamente.");
+        } finally {
+            setIsLinking(false);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#1F4273" />
 
             <KeyboardAvoidingView
                 style={styles.keyboardView}
-                behavior="padding"
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
                 <ScrollView
                     automaticallyAdjustKeyboardInsets={true}
@@ -169,7 +201,7 @@ export const CreateParticipantScreen = () => {
                                 onFocus={() => setFocusedField("nome")}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="Nome completo"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                             />
                         </View>
 
@@ -185,7 +217,7 @@ export const CreateParticipantScreen = () => {
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 placeholder="email@exemplo.com"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                             />
                         </View>
 
@@ -202,7 +234,7 @@ export const CreateParticipantScreen = () => {
                                 keyboardType="numeric"
                                 maxLength={10}
                                 placeholder="dd/mm/aaaa"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                             />
                         </View>
 
@@ -236,7 +268,7 @@ export const CreateParticipantScreen = () => {
                                 keyboardType="numeric"
                                 maxLength={3}
                                 placeholder="170 (em cm)"
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                             />
                         </View>
 
@@ -251,7 +283,7 @@ export const CreateParticipantScreen = () => {
                                 placeholder="70kg"
                                 keyboardType="numeric"
                                 maxLength={3}
-                                placeholderTextColor="#B0BEC5"
+                                placeholderTextColor="#000000"
                             />
                         </View>
 
@@ -275,6 +307,7 @@ export const CreateParticipantScreen = () => {
                 </ScrollView>
             </KeyboardAvoidingView>
 
+            {/* Modal — Sexo */}
             <Modal
                 visible={sexoModalOpen}
                 transparent
@@ -316,6 +349,47 @@ export const CreateParticipantScreen = () => {
                             onPress={() => setSexoModalOpen(false)}
                         >
                             <Text style={styles.modalCancelText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+
+            {/* Modal — Participante já cadastrado */}
+            <Modal
+                visible={participantExistsModal}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setParticipantExistsModal(false)}
+            >
+                <Pressable
+                    style={styles.modalBackdrop}
+                    onPress={() => setParticipantExistsModal(false)}
+                >
+                    <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
+                        <Text style={styles.existsModalTitle}>Participante já cadastrado</Text>
+                        <Text style={styles.existsModalDescription}>
+                            Já existe um participante cadastrado com este e-mail. Deseja vinculá-lo ao seu perfil?
+                        </Text>
+
+                        <TouchableOpacity
+                            style={[styles.linkButton, isLinking && styles.buttonDisabled]}
+                            activeOpacity={0.8}
+                            onPress={handleLinkParticipant}
+                            disabled={isLinking}
+                        >
+                            {isLinking ? (
+                                <ActivityIndicator color="#FFFFFF" />
+                            ) : (
+                                <Text style={styles.linkButtonText}>Vincular participante</Text>
+                            )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.modalCancel}
+                            activeOpacity={0.8}
+                            onPress={() => setParticipantExistsModal(false)}
+                        >
+                            <Text style={styles.modalCancelText}>Usar outro e-mail</Text>
                         </TouchableOpacity>
                     </Pressable>
                 </Pressable>
@@ -392,7 +466,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     selectPlaceholder: {
-        color: "#B0BEC5",
+        color: "#000000",
     },
     selectChevron: {
         marginLeft: 12,
@@ -469,5 +543,37 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 16,
         fontWeight: "bold",
+    },
+    // Modal — participante já cadastrado
+    existsModalTitle: {
+        fontSize: 17,
+        fontWeight: "700",
+        color: "#1F4273",
+        marginBottom: 10,
+        textAlign: "center",
+    },
+    existsModalDescription: {
+        fontSize: 14,
+        color: "#6B7B8D",
+        textAlign: "center",
+        marginBottom: 24,
+        lineHeight: 20,
+    },
+    linkButton: {
+        backgroundColor: "#72AB24",
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: "center",
+        marginBottom: 10,
+        elevation: 2,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+    },
+    linkButtonText: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "700",
     },
 });

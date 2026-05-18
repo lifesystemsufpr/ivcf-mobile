@@ -1,7 +1,7 @@
 import axios from "axios";
 
 
-const baseUrl = __DEV__ ? "http://200.236.3.109/backend" : "http://200.236.3.109/backend";
+const baseUrl = "https://ivcf.com.br/backend";
 
 export const httpClient = axios.create({
     baseURL: baseUrl,
