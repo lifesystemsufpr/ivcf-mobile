@@ -192,6 +192,11 @@ export const UserDetailScreen = ({ navigation, route }: any) => {
                                 <Text style={[styles.value, { flexWrap: "wrap" }]}>
                                     {participant.street ? `${participant.street}, ${participant.number || "S/N"}` : "Não informado"}
                                 </Text>
+                                {!!participant.complement && (
+                                    <Text style={[styles.addressSub, { flexWrap: "wrap" }]}>
+                                        Complemento: {participant.complement}
+                                    </Text>
+                                )}
                                 <Text style={[styles.addressSub, { flexWrap: "wrap" }]}>
                                     {participant.neighborhood ? `${participant.neighborhood} - ${participant.city} - ${participant.state}` : ""}
                                 </Text>

@@ -111,6 +111,7 @@ export const LoginScreen = () => {
                                         onChangeText={setEmail}
                                         keyboardType="email-address"
                                         autoCapitalize="none"
+                                        autoCorrect={false}
                                         returnKeyType="next"
                                     />
                                 </View>

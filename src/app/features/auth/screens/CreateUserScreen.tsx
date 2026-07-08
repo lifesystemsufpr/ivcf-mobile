@@ -35,9 +35,52 @@ export const CreateUserScreen = () => {
     const createHealthProfessional = useCreateHealthProfessional();
 
 
+    const isValidName = (name: string) => {
+        const nameRegex = /^[A-Za-zÀ-ÿ]+(?:\s+[A-Za-zÀ-ÿ]+)+$/;
+        if (!nameRegex.test(name.trim())) return false;
+        
+        const words = name.trim().split(/\s+/);
+        if (words[0].length < 2) return false;
+        const lastName = words[words.length - 1];
+        if (lastName.length < 2) return false;
+        
+        return true;
+    };
+
+    const isValidEmail = (email: string) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        return emailRegex.test(email.trim());
+    };
+
+    const isValidPassword = (password: string) => {
+        // Mínimo de 8 caracteres, contendo pelo menos 1 letra e 1 número
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
+        return passwordRegex.test(password);
+    };
+
     const handleCadastrar = async () => {
         if (!nome || !email || !senha || !confirmSenha || !termsAccepted) {
             Alert.alert("Atenção", "Por favor, preencha todos os campos e aceite os termos.");
+            return;
+        }
+
+        if (!isValidName(nome)) {
+            Alert.alert("Atenção", "O nome deve conter pelo menos nome e sobrenome, sem números ou caracteres especiais.");
+            return;
+        }
+
+        if (!isValidEmail(email)) {
+            Alert.alert("Atenção", "Por favor, insira um e-mail válido com domínio completo (ex: nome@dominio.com).");
+            return;
+        }
+
+        if (senha.length < 8) {
+            Alert.alert("Atenção", "A senha deve possuir pelo menos 8 caracteres.");
+            return;
+        }
+
+        if (!isValidPassword(senha)) {
+            Alert.alert("Atenção", "A senha deve conter caracteres alfanuméricos (letras e números).");
             return;
         }
 
@@ -125,6 +168,7 @@ export const CreateUserScreen = () => {
                                 onChangeText={(text) => setEmail(text)}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
+                                autoCorrect={false}
                                 placeholder="email@exemplo.com"
                                 placeholderTextColor="#888888"
                             />
@@ -156,9 +200,7 @@ export const CreateUserScreen = () => {
                                 value={senha}
                                 onChangeText={(text) => setSenha(text)}
                                 secureTextEntry
-
-                                placeholder="Minimo 6 caracteres
-                                "
+                                placeholder="Mínimo 8 caracteres"
                                 placeholderTextColor="#888888"
                             />
                         </View>

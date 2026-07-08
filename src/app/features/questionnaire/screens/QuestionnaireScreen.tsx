@@ -25,11 +25,12 @@ const MULTI_SELECT_QUESTION_IDS_FALLBACK = new Set<string>();
 
 function isMultiSelect(question: QuestionDTO): boolean {
     if (question.type === "MULTI_ENUM") return true;
-    // Fallback: detect by statement pattern (questions 14 and 20 in IVCF-20)
     const stmt = question.statement.toLowerCase();
     return (
         stmt.includes("alguma das quatro") ||
-        stmt.includes("alguma das três")
+        stmt.includes("alguma das três") ||
+        stmt.includes("condições abaixo") ||
+        stmt.includes("condições abaixo relacionadas")
     );
 }
 
@@ -67,27 +68,31 @@ function calculateTotalScore(
     answers: Answers,
 ): number {
     let score = 0;
-    let aivdScore = 0; // AIVD domain questions (3, 4, 5) — max contribution is 4
-    let humorScore = 0; // Humor domain questions (10, 11) — max contribution is 2
+    let avdInstrumentalScore = 0;
 
-    questions.forEach((question, index) => {
-        const questionNumber = index + 1;
+    questions.forEach((question) => {
         const value = answers[question.id];
         const qScore = getQuestionScore(question, value);
+        
+        const stmt = question.statement.toLowerCase();
+        // AVD Instrumentais no IVCF-20 (questões 3, 4 e 5) - teto máximo 4 pontos
+        const isAvdInstrumental = 
+            stmt.includes("fazer compras") || 
+            stmt.includes("controlar seu dinheiro") || 
+            stmt.includes("trabalhos domésticos") || 
+            stmt.includes("pequenos trabalhos domésticos");
 
-        if (questionNumber >= 3 && questionNumber <= 5) {
-            aivdScore = Math.max(aivdScore, qScore);
-        } else if (questionNumber === 10 || questionNumber === 11) {
-            humorScore = Math.max(humorScore, qScore);
+        if (isAvdInstrumental) {
+            avdInstrumentalScore += qScore;
         } else {
             score += qScore;
         }
     });
 
-    score += aivdScore;
-    score += humorScore;
+    // A pontuação máxima para AVDs instrumentais é 4 pontos
+    score += Math.min(avdInstrumentalScore, 4);
 
-    return Math.min(score, 40);
+    return score;
 }
 
 export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
@@ -100,7 +105,16 @@ export const QuestionnaireScreen: React.FC<Props> = ({ navigation }) => {
     useEffect(() => {
         if (questions.length > 0 && participant?.birthday && !answers[questions[0].id]) {
             const today = new Date();
-            const birthDate = new Date(participant.birthday);
+            let birthDate = new Date(participant.birthday);
+            
+            // Fix timezone parsing for 'YYYY-MM-DD' formatted dates
+            if (typeof participant.birthday === 'string' && participant.birthday.includes('-')) {
+                const parts = participant.birthday.split('T')[0].split('-');
+                if (parts.length === 3) {
+                    birthDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                }
+            }
+
             let age = today.getFullYear() - birthDate.getFullYear();
             const m = today.getMonth() - birthDate.getMonth();
             if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {

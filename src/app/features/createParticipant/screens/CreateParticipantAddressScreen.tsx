@@ -99,14 +99,19 @@ export const CreateParticipantAddressScreen = () => {
 
     const parseHeight = (value: string) => {
         const normalized = value.replace(",", ".").trim();
-        const parsed = Number(normalized);
-        return Number.isFinite(parsed) ? parsed : undefined;
+        let parsed = Number(normalized);
+        if (!Number.isFinite(parsed)) return undefined;
+        // Caso o usuário tenha digitado em metros (ex: 1.75), converte para cm
+        if (parsed > 0 && parsed <= 3.0) {
+            parsed = parsed * 100;
+        }
+        return (parsed >= 50 && parsed <= 300) ? parsed : undefined;
     };
 
     const parseWeight = (value: string) => {
         const normalized = value.replace(",", ".").replace(/kg/gi, "").trim();
         const parsed = Number(normalized);
-        return Number.isFinite(parsed) ? parsed : undefined;
+        return (Number.isFinite(parsed) && parsed >= 20 && parsed <= 300) ? parsed : undefined;
     };
 
     const parseBirthday = (value: string) => {
@@ -157,11 +162,11 @@ export const CreateParticipantAddressScreen = () => {
             return;
         }
         if (!height) {
-            Alert.alert("Atenção", "Altura inválida. Ex.: 1,75");
+            Alert.alert("Atenção", "Altura inválida. (Entre 50 e 300 cm)");
             return;
         }
         if (!weight) {
-            Alert.alert("Atenção", "Peso inválido. Ex.: 70");
+            Alert.alert("Atenção", "Peso inválido. (Entre 20 e 300 kg)");
             return;
         }
         if (!gender) {

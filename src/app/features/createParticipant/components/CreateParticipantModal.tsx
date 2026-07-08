@@ -100,9 +100,36 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
         setAltura(raw);
     };
 
+    const isValidName = (name: string) => {
+        const nameRegex = /^[A-Za-zÀ-ÿ]+(?:\s+[A-Za-zÀ-ÿ]+)+$/;
+        if (!nameRegex.test(name.trim())) return false;
+        
+        const words = name.trim().split(/\s+/);
+        if (words[0].length < 2) return false;
+        const lastName = words[words.length - 1];
+        if (lastName.length < 2) return false;
+        
+        return true;
+    };
+
+    const isValidEmail = (email: string) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        return emailRegex.test(email.trim());
+    };
+
     const handleNextStep = async () => {
         if (!nome || !email || !dataNasc || !sexo || !altura || !peso) {
             Alert.alert("Atenção", "Por favor, preencha todos os campos.");
+            return;
+        }
+
+        if (!isValidName(nome)) {
+            Alert.alert("Atenção", "O nome deve conter pelo menos nome e sobrenome, sem números ou caracteres especiais.");
+            return;
+        }
+
+        if (!isValidEmail(email)) {
+            Alert.alert("Atenção", "Por favor, insira um e-mail válido com domínio completo (ex: nome@dominio.com).");
             return;
         }
 
@@ -246,11 +273,38 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
 
         const birthday = parseBirthday(dataNasc);
         const gender = toGenderEnum(sexo);
-        const heightNum = Number(altura);
-        const weightNum = Number(peso);
+        
+        const parseHeight = (value: string) => {
+            const normalized = value.replace(",", ".").trim();
+            let parsed = Number(normalized);
+            if (!Number.isFinite(parsed)) return undefined;
+            if (parsed > 0 && parsed <= 3.0) parsed = parsed * 100;
+            return (parsed >= 50 && parsed <= 300) ? parsed : undefined;
+        };
 
-        if (!birthday || !gender || isNaN(heightNum) || isNaN(weightNum)) {
-            Alert.alert("Erro", "Dados inválidos.");
+        const parseWeight = (value: string) => {
+            const normalized = value.replace(",", ".").replace(/kg/gi, "").trim();
+            const parsed = Number(normalized);
+            return (Number.isFinite(parsed) && parsed >= 20 && parsed <= 300) ? parsed : undefined;
+        };
+
+        const heightNum = parseHeight(altura);
+        const weightNum = parseWeight(peso);
+
+        if (!birthday) {
+            Alert.alert("Erro", "Data de nascimento inválida.");
+            return;
+        }
+        if (!gender) {
+            Alert.alert("Erro", "Sexo inválido.");
+            return;
+        }
+        if (!heightNum) {
+            Alert.alert("Atenção", "Altura inválida. (Entre 50 e 300 cm)");
+            return;
+        }
+        if (!weightNum) {
+            Alert.alert("Atenção", "Peso inválido. (Entre 20 e 300 kg)");
             return;
         }
 
@@ -292,7 +346,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     onFocus={() => setFocusedField("nome")}
                     onBlur={() => setFocusedField(null)}
                     placeholder="Nome completo"
-                    placeholderTextColor="#000000"
+                    placeholderTextColor="#6B7B8D"
                 />
             </View>
             <View style={styles.fieldGroup}>
@@ -305,8 +359,9 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     onBlur={() => setFocusedField(null)}
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    autoCorrect={false}
                     placeholder="email@exemplo.com"
-                    placeholderTextColor="#000000"
+                    placeholderTextColor="#6B7B8D"
                 />
             </View>
             <View style={styles.fieldGroup}>
@@ -320,14 +375,14 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     keyboardType="numeric"
                     maxLength={10}
                     placeholder="dd/mm/aaaa"
-                    placeholderTextColor="#000000"
+                    placeholderTextColor="#6B7B8D"
                 />
             </View>
             <View style={styles.fieldGroup}>
                 <Text style={styles.label}>Gênero</Text>
                 <TouchableOpacity
-                    style={[styles.selectInput, { borderBottomColor: sexoModalOpen ? "#1F4273" : "#C5CED8" }]}
-                    onPress={() => setSexoModalOpen(true)}
+                    style={[styles.selectInput, { borderBottomColor: sexoModalOpen ? "#1F4273" : "#C5CED8" ,}]}
+                    onPress={() => setSexoModalOpen(true) }
                 >
                     <Text style={[styles.selectText, !sexo && styles.selectPlaceholder]}>{sexo || "Selecione"}</Text>
                     <Text style={styles.selectChevron}>▾</Text>
@@ -345,7 +400,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         keyboardType="numeric"
                         maxLength={3}
                         placeholder="170"
-                        placeholderTextColor="#000000"
+                        placeholderTextColor="#6B7B8D"
                     />
                 </View>
                 <View style={[styles.fieldGroup, { flex: 1 }]}>
@@ -359,7 +414,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         keyboardType="numeric"
                         maxLength={3}
                         placeholder="70"
-                        placeholderTextColor="#000000"
+                        placeholderTextColor="#6B7B8D"
                     />
                 </View>
             </View>
@@ -383,7 +438,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         keyboardType="numeric"
                         maxLength={9}
                         placeholder="00000-000"
-                        placeholderTextColor="#000000"
+                        placeholderTextColor="#6B7B8D"
                     />
                     {isCepLoading && <ActivityIndicator style={styles.innerLoader} size="small" color="#1F4273" />}
                 </View>
@@ -396,7 +451,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     onChangeText={setRua}
                     editable={!cepDisabledFields.rua}
                     placeholder="Nome da rua"
-                    placeholderTextColor="#000000"
+                    placeholderTextColor="#6B7B8D"
                 />
             </View>
             <View style={styles.row}>
@@ -408,7 +463,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         onChangeText={setNumero}
                         keyboardType="numeric"
                         placeholder="123"
-                        placeholderTextColor="#000000"
+                        placeholderTextColor="#6B7B8D"
                     />
                 </View>
                 <View style={[styles.fieldGroup, { flex: 2 }]}>
@@ -418,7 +473,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         value={complemento}
                         onChangeText={setComplemento}
                         placeholder="Opcional"
-                        placeholderTextColor="#000000"
+                        placeholderTextColor="#6B7B8D"
                     />
                 </View>
             </View>
@@ -431,7 +486,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         onChangeText={setBairro}
                         editable={!cepDisabledFields.bairro}
                         placeholder="Bairro"
-                        placeholderTextColor="#000000"
+                        placeholderTextColor="#6B7B8D"
                     />
                 </View>
                 <View style={[styles.fieldGroup, { flex: 1 }]}>
@@ -442,7 +497,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                         onChangeText={setCidade}
                         editable={!cepDisabledFields.cidade}
                         placeholder="Cidade"
-                        placeholderTextColor="#000000"
+                        placeholderTextColor="#6B7B8D"
                     />
                 </View>
             </View>
@@ -456,7 +511,7 @@ export const CreateParticipantModal = ({ visible, onClose, onSuccess }: CreatePa
                     maxLength={2}
                     autoCapitalize="characters"
                     placeholder="PR"
-                    placeholderTextColor="#000000"
+                    placeholderTextColor="#6B7B8D"
                 />
             </View>
             <View style={styles.row}>
@@ -611,7 +666,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 12,
         fontSize: 15,
-        color: "#333",
+        color: "#6B7B8D",
         borderBottomWidth: 2,
         borderBottomColor: "#C5CED8",
     },
@@ -635,7 +690,7 @@ const styles = StyleSheet.create({
         color: "#333",
     },
     selectPlaceholder: {
-        color: "#000000",
+        color: "#6B7B8D",
     },
     selectChevron: {
         fontSize: 16,
