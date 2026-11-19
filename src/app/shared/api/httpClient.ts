@@ -1,7 +1,7 @@
 import axios from "axios";
 
 
-const baseUrl = "https://ivcf.com.br/backend";
+const baseUrl = "https://app.ivcf.com.br/api";
 
 export const httpClient = axios.create({
     baseURL: baseUrl,
